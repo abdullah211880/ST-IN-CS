@@ -3,13 +3,19 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: MCP-Based RAG Question Answering API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: documents
+    description: Document management
+  - name: sessions
+    description: MCP session management
+  - name: qa
+    description: Question answering
 paths:
   /healthz:
     get:
@@ -24,6 +30,252 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /documents:
+    get:
+      operationId: listDocuments
+      tags: [documents]
+      summary: List all documents
+      description: Returns all uploaded documents
+      responses:
+        "200":
+          description: List of documents
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Document"
+    post:
+      operationId: uploadDocument
+      tags: [documents]
+      summary: Upload a document
+      description: Upload and process a document for RAG
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                filename:
+                  type: string
+                content:
+                  type: string
+                  description: Text content (if not uploading a binary file)
+                documentType:
+                  type: string
+                  enum: [text, pdf, table, image, mixed]
+                  default: text
+              required:
+                - filename
+      responses:
+        "201":
+          description: Document uploaded and processed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+
+  /documents/{id}:
+    get:
+      operationId: getDocument
+      tags: [documents]
+      summary: Get document by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Document details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteDocument
+      tags: [documents]
+      summary: Delete a document
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+
+  /documents/{id}/chunks:
+    get:
+      operationId: getDocumentChunks
+      tags: [documents]
+      summary: Get chunks for a document
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Document chunks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Chunk"
+
+  /sessions:
+    get:
+      operationId: listSessions
+      tags: [sessions]
+      summary: List all MCP sessions
+      responses:
+        "200":
+          description: List of sessions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Session"
+    post:
+      operationId: createSession
+      tags: [sessions]
+      summary: Create a new MCP session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSessionBody"
+      responses:
+        "201":
+          description: Session created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+
+  /sessions/{id}:
+    get:
+      operationId: getSession
+      tags: [sessions]
+      summary: Get session by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Session details with full context
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionWithMessages"
+
+  /sessions/{id}/ask:
+    post:
+      operationId: askQuestion
+      tags: [qa]
+      summary: Ask a question in a session
+      description: Submit a question to the MCP-based RAG system and get an answer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AskQuestionBody"
+      responses:
+        "200":
+          description: Question answered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QAResult"
+
+  /sessions/{id}/messages:
+    get:
+      operationId: getSessionMessages
+      tags: [sessions]
+      summary: Get all messages in a session
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Message"
+
+  /stats/overview:
+    get:
+      operationId: getOverviewStats
+      tags: [documents]
+      summary: Get system overview statistics
+      responses:
+        "200":
+          description: Overview stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OverviewStats"
+
+  /stats/topics:
+    get:
+      operationId: getTopicStats
+      tags: [documents]
+      summary: Get topic distribution across documents
+      responses:
+        "200":
+          description: Topic distribution
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TopicStat"
+
+  /stats/recent-activity:
+    get:
+      operationId: getRecentActivity
+      tags: [sessions]
+      summary: Get recent question answering activity
+      responses:
+        "200":
+          description: Recent activity
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ActivityItem"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +286,291 @@ components:
       required:
         - status
 
+    Document:
+      type: object
+      properties:
+        id:
+          type: string
+        filename:
+          type: string
+        documentType:
+          type: string
+          enum: [text, pdf, table, image, mixed]
+        status:
+          type: string
+          enum: [processing, ready, error]
+        chunkCount:
+          type: integer
+        topics:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - filename
+        - documentType
+        - status
+        - createdAt
+        - updatedAt
+
+    Chunk:
+      type: object
+      properties:
+        id:
+          type: string
+        documentId:
+          type: string
+        content:
+          type: string
+        chunkIndex:
+          type: integer
+        topic:
+          type: string
+        pageNumber:
+          type: integer
+        metadata:
+          type: object
+      required:
+        - id
+        - documentId
+        - content
+        - chunkIndex
+
+    Session:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        documentIds:
+          type: array
+          items:
+            type: string
+        messageCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - title
+        - documentIds
+        - messageCount
+        - createdAt
+        - updatedAt
+
+    SessionWithMessages:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        documentIds:
+          type: array
+          items:
+            type: string
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/Message"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - title
+        - documentIds
+        - messages
+        - createdAt
+        - updatedAt
+
+    Message:
+      type: object
+      properties:
+        id:
+          type: string
+        sessionId:
+          type: string
+        role:
+          type: string
+          enum: [user, assistant]
+        content:
+          type: string
+        sources:
+          type: array
+          items:
+            $ref: "#/components/schemas/SourceCitation"
+        agentTrace:
+          type: array
+          items:
+            $ref: "#/components/schemas/AgentStep"
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - sessionId
+        - role
+        - content
+        - createdAt
+
+    SourceCitation:
+      type: object
+      properties:
+        documentId:
+          type: string
+        filename:
+          type: string
+        chunkContent:
+          type: string
+        topic:
+          type: string
+        pageNumber:
+          type: integer
+      required:
+        - documentId
+        - filename
+        - chunkContent
+
+    AgentStep:
+      type: object
+      properties:
+        agentName:
+          type: string
+          enum: [TextAgent, TableAgent, ImageAgent, TopicModelingAgent, RetrievalAgent, AnswerSynthesisAgent]
+        action:
+          type: string
+        result:
+          type: string
+        durationMs:
+          type: integer
+      required:
+        - agentName
+        - action
+        - result
+
+    CreateSessionBody:
+      type: object
+      properties:
+        title:
+          type: string
+        documentIds:
+          type: array
+          items:
+            type: string
+      required:
+        - title
+
+    AskQuestionBody:
+      type: object
+      properties:
+        question:
+          type: string
+        documentIds:
+          type: array
+          items:
+            type: string
+          description: Optional subset of documents to search
+      required:
+        - question
+
+    QAResult:
+      type: object
+      properties:
+        messageId:
+          type: string
+        answer:
+          type: string
+        sources:
+          type: array
+          items:
+            $ref: "#/components/schemas/SourceCitation"
+        agentTrace:
+          type: array
+          items:
+            $ref: "#/components/schemas/AgentStep"
+        processingTimeMs:
+          type: integer
+      required:
+        - messageId
+        - answer
+        - sources
+        - agentTrace
+
+    OverviewStats:
+      type: object
+      properties:
+        totalDocuments:
+          type: integer
+        totalChunks:
+          type: integer
+        totalSessions:
+          type: integer
+        totalQuestions:
+          type: integer
+        uniqueTopics:
+          type: integer
+        avgAnswerTimeMs:
+          type: integer
+      required:
+        - totalDocuments
+        - totalChunks
+        - totalSessions
+        - totalQuestions
+        - uniqueTopics
+        - avgAnswerTimeMs
+
+    TopicStat:
+      type: object
+      properties:
+        topic:
+          type: string
+        chunkCount:
+          type: integer
+        documentCount:
+          type: integer
+      required:
+        - topic
+        - chunkCount
+        - documentCount
+
+    ActivityItem:
+      type: object
+      properties:
+        id:
+          type: string
+        sessionId:
+          type: string
+        sessionTitle:
+          type: string
+        question:
+          type: string
+        answer:
+          type: string
+        sourceCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - sessionId
+        - sessionTitle
+        - question
+        - answer
+        - sourceCount
+        - createdAt

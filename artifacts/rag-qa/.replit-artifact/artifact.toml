@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "MCP-Based RAG Question Answering"
+version = "1.0.0"
+id = "artifacts/rag-qa"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21451
+
+[services.development]
+run = "pnpm --filter @workspace/rag-qa run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/rag-qa", "run", "build" ]
+publicDir = "artifacts/rag-qa/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21451"
+BASE_PATH = "/"
