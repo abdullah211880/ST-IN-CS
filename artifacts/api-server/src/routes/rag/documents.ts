@@ -1,7 +1,7 @@
 import { Router } from "express";
 import multer from "multer";
 import { randomUUID } from "crypto";
-import pdfParse from "pdf-parse";
+import pdfParse from "pdf-parse/lib/pdf-parse.js";
 import { db } from "@workspace/db";
 import { documentsTable, chunksTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
