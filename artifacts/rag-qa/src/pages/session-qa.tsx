@@ -129,8 +129,8 @@ export default function SessionQA() {
                   <div className={cn(
                     "max-w-[85%] rounded-lg p-4", 
                     msg.role === 'user' 
-                      ? "bg-primary text-primary-foreground" 
-                      : "bg-card border border-border shadow-sm"
+                      ? "bg-primary text-primary-foreground shadow-[0_0_20px_hsl(192_100%_48%_/_0.35)]" 
+                      : "bg-card/70 backdrop-blur-sm glow-card"
                   )}>
                     {msg.role === 'assistant' ? (
                       <div className="prose prose-sm dark:prose-invert max-w-none break-words

@@ -33,10 +33,10 @@ export function Layout({ children }: LayoutProps) {
                 key={item.name}
                 href={item.href}
                 className={cn(
-                  "flex items-center px-3 py-2 text-sm rounded-md transition-colors",
+                  "flex items-center px-3 py-2 text-sm rounded-md transition-all duration-200",
                   isActive
-                    ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium shadow-sm"
-                    : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                    ? "bg-sidebar-primary text-sidebar-primary-foreground font-semibold shadow-[0_0_12px_hsl(192_100%_48%_/_0.4),0_0_24px_hsl(192_100%_48%_/_0.15)]"
+                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-[0_0_8px_hsl(192_100%_48%_/_0.1)]"
                 )}
               >
                 <item.icon className={cn("w-4 h-4 mr-3", isActive ? "opacity-100" : "opacity-70")} />

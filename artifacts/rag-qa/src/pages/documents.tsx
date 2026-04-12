@@ -74,7 +74,7 @@ export default function Documents() {
   };
 
   return (
-    <div className="flex-1 overflow-y-auto p-8 bg-muted/20">
+    <div className="flex-1 overflow-y-auto p-8">
       <div className="max-w-6xl mx-auto space-y-8">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
@@ -135,7 +135,7 @@ export default function Documents() {
           </Dialog>
         </div>
 
-        <Card className="border-border/50 shadow-sm">
+        <Card className="glow-card bg-card/60 backdrop-blur-sm">
           <CardHeader>
             <CardTitle>Indexed Documents</CardTitle>
           </CardHeader>

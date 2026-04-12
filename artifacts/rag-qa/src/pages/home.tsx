@@ -28,7 +28,7 @@ export default function Home() {
   ];
 
   return (
-    <div className="flex-1 overflow-y-auto p-8 bg-muted/20">
+    <div className="flex-1 overflow-y-auto p-8">
       <div className="max-w-6xl mx-auto space-y-8">
         
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -44,10 +44,10 @@ export default function Home() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {statCards.map((stat, i) => (
-            <Card key={i} className="border-border/50 shadow-sm">
+            <Card key={i} className="glow-card bg-card/60 backdrop-blur-sm">
               <CardContent className="p-6 flex flex-col gap-4">
                 <div className="flex justify-between items-start">
-                  <div className="p-2 bg-primary/10 text-primary rounded-md">
+                  <div className="p-2 bg-primary/15 text-primary rounded-md ring-1 ring-primary/20">
                     <stat.icon className="w-5 h-5" />
                   </div>
                 </div>
@@ -66,7 +66,7 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <Card className="lg:col-span-2 border-border/50 shadow-sm">
+          <Card className="lg:col-span-2 glow-card bg-card/60 backdrop-blur-sm">
             <CardHeader>
               <CardTitle>Recent Activity</CardTitle>
               <CardDescription>Latest questions across all sessions.</CardDescription>
@@ -118,7 +118,7 @@ export default function Home() {
             </CardContent>
           </Card>
 
-          <Card className="border-border/50 shadow-sm bg-primary/5 border-primary/10">
+          <Card className="glow-card bg-primary/5 border-primary/10 backdrop-blur-sm">
             <CardHeader>
               <CardTitle>Quick Start</CardTitle>
             </CardHeader>
@@ -155,7 +155,7 @@ export default function Home() {
             </CardContent>
           </Card>
 
-          <Card className="border-border/50 shadow-sm">
+          <Card className="glow-card bg-card/60 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="flex items-center"><PieChart className="w-4 h-4 mr-2" /> Top Topics</CardTitle>
             </CardHeader>

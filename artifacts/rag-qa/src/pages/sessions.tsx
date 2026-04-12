@@ -63,7 +63,7 @@ export default function Sessions() {
   };
 
   return (
-    <div className="flex-1 overflow-y-auto p-8 bg-muted/20">
+    <div className="flex-1 overflow-y-auto p-8">
       <div className="max-w-6xl mx-auto space-y-8">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
@@ -151,7 +151,7 @@ export default function Sessions() {
             sessions.map((session) => (
               <Card 
                 key={session.id} 
-                className="border-border/50 shadow-sm hover:border-primary/50 hover:shadow-md transition-all cursor-pointer group"
+                className="glow-card transition-all cursor-pointer group bg-card/60 backdrop-blur-sm"
                 onClick={() => setLocation(`/sessions/${session.id}`)}
               >
                 <CardHeader className="pb-3">
