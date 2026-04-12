@@ -10,6 +10,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { useQueryClient } from "@tanstack/react-query";
 import { Send, Terminal, ChevronDown, ChevronRight, FileText, Loader2, ArrowLeft, BrainCircuit, AlignLeft, Layers } from "lucide-react";
 import { cn } from "@/lib/utils";
+import ReactMarkdown from "react-markdown";
 
 export default function SessionQA() {
   const params = useParams();
@@ -128,9 +129,23 @@ export default function SessionQA() {
                       ? "bg-primary text-primary-foreground" 
                       : "bg-card border border-border shadow-sm"
                   )}>
-                    <div className="prose prose-sm dark:prose-invert max-w-none break-words">
-                      {msg.content.split('\n').map((p, i) => <p key={i} className="mb-2 last:mb-0">{p}</p>)}
-                    </div>
+                    {msg.role === 'assistant' ? (
+                      <div className="prose prose-sm dark:prose-invert max-w-none break-words
+                        [&>p]:mb-2 [&>p:last-child]:mb-0
+                        [&>ol]:list-decimal [&>ol]:pl-5 [&>ol]:space-y-1.5 [&>ol]:mb-2
+                        [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:space-y-1.5 [&>ul]:mb-2
+                        [&_li]:leading-relaxed
+                        [&>h1]:text-base [&>h1]:font-bold [&>h1]:mb-2
+                        [&>h2]:text-sm [&>h2]:font-bold [&>h2]:mb-1.5
+                        [&>h3]:text-sm [&>h3]:font-semibold [&>h3]:mb-1
+                        [&>strong]:font-semibold
+                        [&>blockquote]:border-l-2 [&>blockquote]:border-primary/40 [&>blockquote]:pl-3 [&>blockquote]:text-muted-foreground [&>blockquote]:italic
+                        [&>hr]:border-border [&>hr]:my-3">
+                        <ReactMarkdown>{msg.content}</ReactMarkdown>
+                      </div>
+                    ) : (
+                      <div className="break-words text-sm leading-relaxed">{msg.content}</div>
+                    )}
                     
                     {/* Sources section inline if no sidebar or just brief summary */}
                     {msg.role === 'assistant' && msg.sources && msg.sources.length > 0 && (
