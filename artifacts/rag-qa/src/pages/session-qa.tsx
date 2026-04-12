@@ -11,6 +11,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Send, Terminal, ChevronDown, ChevronRight, FileText, Loader2, ArrowLeft, BrainCircuit, AlignLeft, Layers } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
+import AnimatedBackground from "@/components/animated-background";
 
 export default function SessionQA() {
   const params = useParams();
@@ -106,7 +107,9 @@ export default function SessionQA() {
           </Button>
         </div>
 
-        <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+        <div className="relative flex-1 overflow-hidden">
+          <AnimatedBackground />
+        <ScrollArea className="relative z-10 h-full p-4" ref={scrollRef}>
           <div className="max-w-3xl mx-auto space-y-6 pb-4">
             {session.messages.length === 0 ? (
               <div className="text-center py-20 text-muted-foreground">
@@ -183,6 +186,7 @@ export default function SessionQA() {
             )}
           </div>
         </ScrollArea>
+        </div>
 
         <div className="p-4 bg-background border-t shrink-0">
           <form onSubmit={handleAsk} className="max-w-3xl mx-auto relative flex items-center">
