@@ -146,14 +146,14 @@ export default function SessionQA() {
                       : "bg-card/70 backdrop-blur-sm glow-card"
                   )}>
                     {msg.role === 'assistant' ? (
-                      <div className="prose prose-sm dark:prose-invert max-w-none break-words
-                        [&>p]:mb-2 [&>p:last-child]:mb-0
-                        [&>ol]:list-decimal [&>ol]:pl-5 [&>ol]:space-y-1.5 [&>ol]:mb-2
-                        [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:space-y-1.5 [&>ul]:mb-2
-                        [&_li]:leading-relaxed
-                        [&>h1]:text-base [&>h1]:font-bold [&>h1]:mb-2
-                        [&>h2]:text-sm [&>h2]:font-bold [&>h2]:mb-1.5
-                        [&>h3]:text-sm [&>h3]:font-semibold [&>h3]:mb-1
+                      <div className="prose prose-base dark:prose-invert max-w-none break-words
+                        [&>p]:mb-3 [&>p:last-child]:mb-0 [&>p]:text-base [&>p]:leading-7
+                        [&>ol]:list-decimal [&>ol]:pl-5 [&>ol]:space-y-2 [&>ol]:mb-3
+                        [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:space-y-2 [&>ul]:mb-3
+                        [&_li]:leading-relaxed [&_li]:text-base
+                        [&>h1]:text-lg [&>h1]:font-bold [&>h1]:mb-2
+                        [&>h2]:text-base [&>h2]:font-bold [&>h2]:mb-2
+                        [&>h3]:text-base [&>h3]:font-semibold [&>h3]:mb-1.5
                         [&>strong]:font-semibold
                         [&>blockquote]:border-l-2 [&>blockquote]:border-primary/40 [&>blockquote]:pl-3 [&>blockquote]:text-muted-foreground [&>blockquote]:italic
                         [&>hr]:border-border [&>hr]:my-3">
