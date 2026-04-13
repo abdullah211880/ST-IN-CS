@@ -3,6 +3,7 @@ import { Link, useLocation } from "wouter";
 import {
   Database, FileText, MessageSquare, Home,
   Bot, Send, X, Loader2, ChevronDown, Sparkles,
+  ChevronLeft, ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -194,18 +195,43 @@ function AiAssistant() {
 export function Layout({ children }: LayoutProps) {
   const [location] = useLocation();
   const [mounted, setMounted] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => { const t = setTimeout(() => setMounted(true), 50); return () => clearTimeout(t); }, []);
 
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
 
+      {/* Persistent open-tab (visible only when sidebar is closed) */}
+      <button
+        onClick={() => setSidebarOpen(true)}
+        aria-label="Open sidebar"
+        className="fixed left-0 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center justify-center gap-1 transition-all duration-300"
+        style={{
+          width: 20,
+          height: 72,
+          borderRadius: "0 10px 10px 0",
+          background: "linear-gradient(180deg, hsl(192 80% 20%/0.9), hsl(260 70% 25%/0.9))",
+          border: "1px solid hsl(192 60% 40%/0.3)",
+          borderLeft: "none",
+          boxShadow: "4px 0 16px hsl(192 100% 48%/0.2)",
+          opacity: sidebarOpen ? 0 : 1,
+          pointerEvents: sidebarOpen ? "none" : "auto",
+          transform: `translateY(-50%) translateX(${sidebarOpen ? "-100%" : "0"})`,
+        }}
+      >
+        <ChevronRight className="w-3 h-3 text-cyan-300" />
+      </button>
+
       {/* Sidebar */}
       <aside
-        className="w-64 flex-shrink-0 flex flex-col relative overflow-hidden"
+        className="flex-shrink-0 flex flex-col relative overflow-hidden"
         style={{
+          width: sidebarOpen ? 256 : 0,
+          minWidth: 0,
+          transition: "width 0.3s cubic-bezier(0.4,0,0.2,1)",
           background: "linear-gradient(180deg, hsl(228 80% 4%) 0%, hsl(225 70% 3%) 100%)",
-          borderRight: "1px solid hsl(192 40% 20% / 0.2)",
+          borderRight: sidebarOpen ? "1px solid hsl(192 40% 20% / 0.2)" : "none",
         }}
       >
         {/* Animated background orbs */}
@@ -223,30 +249,50 @@ export function Layout({ children }: LayoutProps) {
         />
 
         {/* Logo / home link */}
-        <Link
-          href="/"
-          className="relative z-10 h-16 flex items-center px-5 shrink-0 group transition-all duration-300"
+        <div
+          className="relative z-10 h-16 flex items-center px-4 shrink-0"
           style={{ borderBottom: "1px solid hsl(192 40% 20% / 0.15)" }}
         >
-          {/* Animated icon */}
-          <div className="w-8 h-8 rounded-lg mr-3 flex items-center justify-center shrink-0 transition-all duration-300 group-hover:scale-110"
+          <Link href="/" className="flex items-center flex-1 min-w-0 group transition-all duration-300">
+            {/* Animated icon */}
+            <div className="w-8 h-8 rounded-lg mr-3 flex items-center justify-center shrink-0 transition-all duration-300 group-hover:scale-110"
+              style={{
+                background: "linear-gradient(135deg, hsl(192 100% 35%), hsl(210 90% 40%))",
+                boxShadow: "0 0 14px hsl(192 100% 48%/0.5)",
+                animation: "logo-pulse 3s ease-in-out infinite",
+              }}>
+              <Database className="w-4 h-4 text-white" />
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="font-bold text-sm tracking-tight text-foreground group-hover:text-cyan-300 transition-colors">
+                RAG Engine
+              </span>
+              <span className="text-[10px] text-muted-foreground/50 group-hover:text-cyan-400/60 transition-colors">
+                Document Intelligence
+              </span>
+            </div>
+          </Link>
+          {/* Collapse button */}
+          <button
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Close sidebar"
+            className="ml-2 shrink-0 w-7 h-7 rounded-md flex items-center justify-center transition-all duration-200 hover:scale-110"
             style={{
-              background: "linear-gradient(135deg, hsl(192 100% 35%), hsl(210 90% 40%))",
-              boxShadow: "0 0 14px hsl(192 100% 48%/0.5)",
-              animation: "logo-pulse 3s ease-in-out infinite",
-            }}>
-            <Database className="w-4 h-4 text-white" />
-          </div>
-          <div className="flex flex-col min-w-0">
-            <span className="font-bold text-sm tracking-tight text-foreground group-hover:text-cyan-300 transition-colors">
-              RAG Engine
-            </span>
-            <span className="text-[10px] text-muted-foreground/50 group-hover:text-cyan-400/60 transition-colors">
-              Document Intelligence
-            </span>
-          </div>
-          <Home className="w-3 h-3 ml-auto text-muted-foreground/25 group-hover:text-cyan-400/50 transition-colors shrink-0" />
-        </Link>
+              background: "hsl(228 50% 12%/0.8)",
+              border: "1px solid hsl(192 40% 25%/0.25)",
+            }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLElement).style.background = "hsl(192 60% 20%/0.4)";
+              (e.currentTarget as HTMLElement).style.boxShadow = "0 0 8px hsl(192 100% 48%/0.25)";
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLElement).style.background = "hsl(228 50% 12%/0.8)";
+              (e.currentTarget as HTMLElement).style.boxShadow = "";
+            }}
+          >
+            <ChevronLeft className="w-3.5 h-3.5 text-muted-foreground/60" />
+          </button>
+        </div>
 
         {/* Navigation */}
         <nav className="relative z-10 flex-1 px-3 py-5 space-y-1 overflow-y-auto">
