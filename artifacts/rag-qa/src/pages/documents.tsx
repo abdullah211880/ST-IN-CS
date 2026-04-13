@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useListDocuments, useUploadDocument, useDeleteDocument, getListDocumentsQueryKey } from "@workspace/api-client-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,7 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { FileText, Trash2, UploadCloud, AlertCircle, CheckCircle2, Loader2, Database } from "lucide-react";
+import { FileText, Trash2, UploadCloud, AlertCircle, CheckCircle2, Loader2, Database, Headphones } from "lucide-react";
+import { TtsPlayerDialog } from "@/components/tts-player";
 
 export default function Documents() {
   const { toast } = useToast();
@@ -26,6 +27,8 @@ export default function Documents() {
   const [file, setFile] = useState<File | null>(null);
   const [documentType, setDocumentType] = useState<string>("text");
 
+  const [ttsDoc, setTtsDoc] = useState<{ id: string; filename: string } | null>(null);
+
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file) return;
@@ -38,38 +41,23 @@ export default function Documents() {
           documentType: documentType as any,
         }
       });
-      
-      toast({
-        title: "Document uploaded",
-        description: "Your document is now processing.",
-      });
-      
+      toast({ title: "Document uploaded", description: "Your document is now processing." });
       setIsUploadOpen(false);
       setFile(null);
       queryClient.invalidateQueries({ queryKey: getListDocumentsQueryKey() });
-    } catch (error) {
-      toast({
-        title: "Upload failed",
-        description: "There was an error uploading your document.",
-        variant: "destructive",
-      });
+    } catch {
+      toast({ title: "Upload failed", description: "There was an error uploading your document.", variant: "destructive" });
     }
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this document?")) return;
-    
     try {
       await deleteDoc.mutateAsync({ id });
-      toast({
-        title: "Document deleted",
-      });
+      toast({ title: "Document deleted" });
       queryClient.invalidateQueries({ queryKey: getListDocumentsQueryKey() });
-    } catch (error) {
-      toast({
-        title: "Delete failed",
-        variant: "destructive",
-      });
+    } catch {
+      toast({ title: "Delete failed", variant: "destructive" });
     }
   };
 
@@ -81,7 +69,7 @@ export default function Documents() {
             <h1 className="text-3xl font-bold tracking-tight text-foreground">Knowledge Base</h1>
             <p className="text-muted-foreground mt-1">Manage documents, view extraction status, and explore indexed topics.</p>
           </div>
-          
+
           <Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>
             <DialogTrigger asChild>
               <Button>
@@ -100,12 +88,14 @@ export default function Documents() {
                 <div className="grid gap-4 py-4">
                   <div className="grid gap-2">
                     <Label htmlFor="file">File</Label>
-                    <Input 
-                      id="file" 
-                      type="file" 
-                      onChange={(e) => setFile(e.target.files?.[0] || null)} 
-                      required 
+                    <Input
+                      id="file"
+                      type="file"
+                      accept=".txt,.md,.pdf,.csv"
+                      onChange={(e) => setFile(e.target.files?.[0] || null)}
+                      required
                     />
+                    <p className="text-xs text-muted-foreground">Supported: TXT, Markdown, PDF (up to 50 MB)</p>
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="type">Document Type</Label>
@@ -123,9 +113,7 @@ export default function Documents() {
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button type="button" variant="outline" onClick={() => setIsUploadOpen(false)}>
-                    Cancel
-                  </Button>
+                  <Button type="button" variant="outline" onClick={() => setIsUploadOpen(false)}>Cancel</Button>
                   <Button type="submit" disabled={!file || uploadDoc.isPending}>
                     {uploadDoc.isPending ? "Uploading..." : "Upload & Index"}
                   </Button>
@@ -172,9 +160,21 @@ export default function Documents() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        {doc.status === 'ready' && <Badge variant="default" className="bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 hover:text-emerald-700 border-emerald-500/20"><CheckCircle2 className="w-3 h-3 mr-1" /> Ready</Badge>}
-                        {doc.status === 'processing' && <Badge variant="secondary" className="text-amber-600 bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/20"><Loader2 className="w-3 h-3 mr-1 animate-spin" /> Processing</Badge>}
-                        {doc.status === 'error' && <Badge variant="destructive"><AlertCircle className="w-3 h-3 mr-1" /> Error</Badge>}
+                        {doc.status === "ready" && (
+                          <Badge variant="default" className="bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 border-emerald-500/20">
+                            <CheckCircle2 className="w-3 h-3 mr-1" /> Ready
+                          </Badge>
+                        )}
+                        {doc.status === "processing" && (
+                          <Badge variant="secondary" className="text-amber-600 bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/20">
+                            <Loader2 className="w-3 h-3 mr-1 animate-spin" /> Processing
+                          </Badge>
+                        )}
+                        {doc.status === "error" && (
+                          <Badge variant="destructive">
+                            <AlertCircle className="w-3 h-3 mr-1" /> Error
+                          </Badge>
+                        )}
                       </TableCell>
                       <TableCell className="capitalize">{doc.documentType}</TableCell>
                       <TableCell>
@@ -194,9 +194,26 @@ export default function Documents() {
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button variant="ghost" size="icon" onClick={() => handleDelete(doc.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            title="Listen to document"
+                            disabled={doc.status !== "ready"}
+                            onClick={() => setTtsDoc({ id: doc.id, filename: doc.filename })}
+                            className="text-cyan-500 hover:text-cyan-400 hover:bg-cyan-500/10 disabled:opacity-30"
+                          >
+                            <Headphones className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDelete(doc.id)}
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -206,6 +223,15 @@ export default function Documents() {
           </CardContent>
         </Card>
       </div>
+
+      {ttsDoc && (
+        <TtsPlayerDialog
+          open={!!ttsDoc}
+          onOpenChange={(open) => { if (!open) setTtsDoc(null); }}
+          documentId={ttsDoc.id}
+          filename={ttsDoc.filename}
+        />
+      )}
     </div>
   );
 }
