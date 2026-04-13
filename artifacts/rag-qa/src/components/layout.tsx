@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { Link, useLocation } from "wouter";
-import { Database, FileText, LayoutDashboard, MessageSquare } from "lucide-react";
+import { Database, FileText, Home, LayoutDashboard, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface LayoutProps {
@@ -11,7 +11,7 @@ export function Layout({ children }: LayoutProps) {
   const [location] = useLocation();
 
   const navigation = [
-    { name: "Overview", href: "/", icon: LayoutDashboard },
+    { name: "Overview", href: "/overview", icon: LayoutDashboard },
     { name: "Documents", href: "/documents", icon: FileText },
     { name: "Sessions", href: "/sessions", icon: MessageSquare },
   ];
@@ -19,10 +19,11 @@ export function Layout({ children }: LayoutProps) {
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
       <aside className="w-64 flex-shrink-0 bg-sidebar border-r border-sidebar-border text-sidebar-foreground flex flex-col">
-        <div className="h-16 flex items-center px-6 border-b border-sidebar-border">
+        <Link href="/" className="h-16 flex items-center px-6 border-b border-sidebar-border hover:opacity-80 transition-opacity">
           <Database className="w-5 h-5 mr-3 text-sidebar-primary" />
           <span className="font-semibold text-lg tracking-tight">RAG Engine</span>
-        </div>
+          <Home className="w-3.5 h-3.5 ml-auto text-sidebar-foreground/30" />
+        </Link>
         
         <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
           <div className="text-xs font-medium text-sidebar-foreground/50 mb-4 px-2 tracking-wider uppercase">Menu</div>
