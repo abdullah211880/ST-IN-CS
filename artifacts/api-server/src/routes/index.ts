@@ -8,6 +8,7 @@ import { questionsRouter } from "./rag/questions.js";
 import { summaryRouter } from "./rag/summary.js";
 import { assistantRouter } from "./rag/assistant.js";
 import { quizRouter } from "./rag/quiz.js";
+import { mindmapRouter } from "./rag/mindmap.js";
 
 const router: IRouter = Router();
 
@@ -20,5 +21,6 @@ router.use(questionsRouter);
 router.use(summaryRouter);
 router.use(assistantRouter);
 router.use(quizRouter);
+router.use(mindmapRouter);
 
 export default router;

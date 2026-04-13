@@ -388,8 +388,9 @@ export function Layout({ children }: LayoutProps) {
               {[
                 { label: "Summarize",    desc: "≡ icon on each doc",  color: "#34d399" },
                 { label: "Question AI",  desc: "💡 icon on each doc", color: "#fbbf24" },
+                { label: "Mind Map",     desc: "⬡ icon on each doc",  color: "#22d3ee" },
                 { label: "Quiz / Exam",  desc: "🎓 icon on each doc", color: "#a78bfa" },
-                { label: "Text-to-Speech", desc: "🎧 icon on each doc", color: "#22d3ee" },
+                { label: "Text-to-Speech", desc: "🎧 icon on each doc", color: "#f87171" },
               ].map((f, i) => (
                 <div
                   key={f.label}
