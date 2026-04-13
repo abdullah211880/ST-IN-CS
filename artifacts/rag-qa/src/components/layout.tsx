@@ -386,8 +386,9 @@ export function Layout({ children }: LayoutProps) {
             </p>
             <div className="space-y-1.5">
               {[
-                { label: "Summarize",  desc: "≡ icon on each doc",  color: "#34d399" },
-                { label: "Question AI", desc: "💡 icon on each doc", color: "#fbbf24" },
+                { label: "Summarize",    desc: "≡ icon on each doc",  color: "#34d399" },
+                { label: "Question AI",  desc: "💡 icon on each doc", color: "#fbbf24" },
+                { label: "Quiz / Exam",  desc: "🎓 icon on each doc", color: "#a78bfa" },
                 { label: "Text-to-Speech", desc: "🎧 icon on each doc", color: "#22d3ee" },
               ].map((f, i) => (
                 <div

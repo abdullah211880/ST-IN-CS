@@ -10,10 +10,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { FileText, Trash2, UploadCloud, AlertCircle, CheckCircle2, Loader2, Database, Headphones, Lightbulb, AlignLeft } from "lucide-react";
+import { FileText, Trash2, UploadCloud, AlertCircle, CheckCircle2, Loader2, Database, Headphones, Lightbulb, AlignLeft, GraduationCap } from "lucide-react";
 import { TtsPlayerDialog } from "@/components/tts-player";
 import { SuggestedQuestionsDialog } from "@/components/suggested-questions";
 import { SummaryDialog } from "@/components/summary-dialog";
+import { QuizDialog } from "@/components/quiz-dialog";
 
 export default function Documents() {
   const { toast } = useToast();
@@ -32,6 +33,7 @@ export default function Documents() {
   const [ttsDoc, setTtsDoc] = useState<{ id: string; filename: string } | null>(null);
   const [questionsDoc, setQuestionsDoc] = useState<{ id: string; filename: string } | null>(null);
   const [summaryDoc, setSummaryDoc] = useState<{ id: string; filename: string } | null>(null);
+  const [quizDoc, setQuizDoc] = useState<{ id: string; filename: string } | null>(null);
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -222,6 +224,16 @@ export default function Documents() {
                           <Button
                             variant="ghost"
                             size="icon"
+                            title="Generate quiz / exam"
+                            disabled={doc.status !== "ready"}
+                            onClick={() => setQuizDoc({ id: doc.id, filename: doc.filename })}
+                            className="text-violet-400 hover:text-violet-300 hover:bg-violet-400/10 disabled:opacity-30"
+                          >
+                            <GraduationCap className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             title="Listen to document"
                             disabled={doc.status !== "ready"}
                             onClick={() => setTtsDoc({ id: doc.id, filename: doc.filename })}
@@ -272,6 +284,15 @@ export default function Documents() {
           onOpenChange={(open) => { if (!open) setSummaryDoc(null); }}
           documentId={summaryDoc.id}
           filename={summaryDoc.filename}
+        />
+      )}
+
+      {quizDoc && (
+        <QuizDialog
+          open={!!quizDoc}
+          onOpenChange={(open) => { if (!open) setQuizDoc(null); }}
+          documentId={quizDoc.id}
+          filename={quizDoc.filename}
         />
       )}
     </div>
