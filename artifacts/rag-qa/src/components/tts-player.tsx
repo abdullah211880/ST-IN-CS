@@ -210,7 +210,7 @@ export function TtsPlayerDialog({ open, onOpenChange, documentId, filename }: Tt
                   </SelectTrigger>
                   <SelectContent className="max-h-52">
                     {voices.map(v => (
-                      <SelectItem key={v.name} value={v.name}>
+                      <SelectItem key={`${v.name}::${v.lang}`} value={v.name}>
                         <span className="font-medium">{v.name}</span>
                         <span className="text-muted-foreground ml-2 text-xs">{v.lang}</span>
                       </SelectItem>

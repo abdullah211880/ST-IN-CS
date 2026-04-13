@@ -4,6 +4,7 @@ import { documentsRouter } from "./rag/documents.js";
 import { sessionsRouter } from "./rag/sessions.js";
 import { statsRouter } from "./rag/stats.js";
 import { ttsRouter } from "./rag/tts.js";
+import { questionsRouter } from "./rag/questions.js";
 
 const router: IRouter = Router();
 
@@ -12,5 +13,6 @@ router.use(documentsRouter);
 router.use(sessionsRouter);
 router.use(statsRouter);
 router.use(ttsRouter);
+router.use(questionsRouter);
 
 export default router;

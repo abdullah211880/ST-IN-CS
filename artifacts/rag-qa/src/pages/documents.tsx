@@ -10,8 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { FileText, Trash2, UploadCloud, AlertCircle, CheckCircle2, Loader2, Database, Headphones } from "lucide-react";
+import { FileText, Trash2, UploadCloud, AlertCircle, CheckCircle2, Loader2, Database, Headphones, Lightbulb } from "lucide-react";
 import { TtsPlayerDialog } from "@/components/tts-player";
+import { SuggestedQuestionsDialog } from "@/components/suggested-questions";
 
 export default function Documents() {
   const { toast } = useToast();
@@ -28,6 +29,7 @@ export default function Documents() {
   const [documentType, setDocumentType] = useState<string>("text");
 
   const [ttsDoc, setTtsDoc] = useState<{ id: string; filename: string } | null>(null);
+  const [questionsDoc, setQuestionsDoc] = useState<{ id: string; filename: string } | null>(null);
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -198,6 +200,16 @@ export default function Documents() {
                           <Button
                             variant="ghost"
                             size="icon"
+                            title="Suggest questions"
+                            disabled={doc.status !== "ready"}
+                            onClick={() => setQuestionsDoc({ id: doc.id, filename: doc.filename })}
+                            className="text-amber-400 hover:text-amber-300 hover:bg-amber-400/10 disabled:opacity-30"
+                          >
+                            <Lightbulb className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             title="Listen to document"
                             disabled={doc.status !== "ready"}
                             onClick={() => setTtsDoc({ id: doc.id, filename: doc.filename })}
@@ -230,6 +242,15 @@ export default function Documents() {
           onOpenChange={(open) => { if (!open) setTtsDoc(null); }}
           documentId={ttsDoc.id}
           filename={ttsDoc.filename}
+        />
+      )}
+
+      {questionsDoc && (
+        <SuggestedQuestionsDialog
+          open={!!questionsDoc}
+          onOpenChange={(open) => { if (!open) setQuestionsDoc(null); }}
+          documentId={questionsDoc.id}
+          filename={questionsDoc.filename}
         />
       )}
     </div>

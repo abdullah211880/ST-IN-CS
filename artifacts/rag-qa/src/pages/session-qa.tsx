@@ -19,6 +19,7 @@ export default function SessionQA() {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const autoAsked = useRef(false);
   
   const [question, setQuestion] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -36,38 +37,50 @@ export default function SessionQA() {
     }
   }, [session?.messages, askMutation.isPending]);
 
-  const handleAsk = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!question.trim() || askMutation.isPending) return;
+  // Auto-ask a question passed via ?autoask=... query param
+  useEffect(() => {
+    if (autoAsked.current || isLoading || !session) return;
+    const searchParams = new URLSearchParams(window.location.search);
+    const autoQ = searchParams.get("autoask");
+    if (!autoQ) return;
+    autoAsked.current = true;
+    // Strip the param from the URL without causing a re-render/navigation
+    const clean = window.location.pathname;
+    window.history.replaceState(null, "", clean);
+    // Submit the question after a short tick to let the page settle
+    setTimeout(() => submitQuestion(autoQ), 80);
+  }, [session, isLoading]);
 
-    const q = question;
-    setQuestion("");
-    
-    // Add optimistic user message locally
+  const submitQuestion = async (q: string) => {
+    if (!q.trim() || askMutation.isPending) return;
+
     const optimisticMessage = {
       id: "temp-" + Date.now(),
       sessionId: id,
       role: "user" as const,
       content: q,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
     };
-    
+
     queryClient.setQueryData(getGetSessionQueryKey(id), (old: any) => {
       if (!old) return old;
       return { ...old, messages: [...old.messages, optimisticMessage] };
     });
 
     try {
-      await askMutation.mutateAsync({
-        id,
-        data: { question: q }
-      });
-      // Invalidate to get the real messages from server
+      await askMutation.mutateAsync({ id, data: { question: q } });
       queryClient.invalidateQueries({ queryKey: getGetSessionQueryKey(id) });
-    } catch (error) {
-      // Revert optimism if failed
+    } catch {
       queryClient.invalidateQueries({ queryKey: getGetSessionQueryKey(id) });
     }
+  };
+
+  const handleAsk = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!question.trim() || askMutation.isPending) return;
+    const q = question;
+    setQuestion("");
+    await submitQuestion(q);
   };
 
   const toggleTrace = (msgId: string) => {
