@@ -6,22 +6,35 @@ import { eq } from "drizzle-orm";
 
 const router = Router();
 
-const SYSTEM_PROMPT = `You are a document analyst. Summarize the provided document content.
+const SYSTEM_PROMPT = `You are a senior document analyst. Produce a comprehensive, detailed analysis of the provided document.
 
 Return ONLY a valid JSON object with this exact shape (no markdown, no code fences):
 {
   "overview": "2-3 sentence plain-English summary of what the document is about",
-  "keyPoints": ["concise bullet point 1", "concise bullet point 2", ...],
-  "entities": ["important name/org/term 1", "important name/org/term 2", ...],
+  "executiveSummary": "3-5 sentence in-depth executive-level summary covering purpose, scope, and significance of the document",
+  "keyPoints": ["detailed bullet point 1", "detailed bullet point 2", ...],
+  "mainTopics": ["topic area 1", "topic area 2", ...],
+  "targetAudience": "who this document is intended for",
+  "sentiment": "one of: positive | neutral | negative | mixed",
+  "criticalDates": ["date and its significance, e.g. 'Jan 1 2025 – Policy effective date'", ...],
+  "recommendations": ["key action or recommendation 1", ...],
+  "riskFactors": ["risk or concern 1", ...],
+  "entities": ["important name/org/term 1", ...],
   "documentType": "one of: contract | policy | report | agreement | article | manual | specification | other",
+  "complexity": "one of: basic | intermediate | advanced | expert",
   "wordCount": <estimated word count as integer>,
   "readingTimeMinutes": <estimated reading time in minutes as integer>
 }
 
 Rules:
-- keyPoints: 5-8 items, each under 15 words, covering the most important facts/clauses/findings
-- entities: up to 8 key named entities (people, orgs, products, places, amounts, dates)
-- Be specific to THIS document's actual content, not generic
+- keyPoints: 8-12 items, each 10-20 words, covering the most important facts/clauses/findings in detail
+- mainTopics: 3-6 high-level topic areas or sections covered
+- criticalDates: dates/deadlines/timeframes explicitly mentioned; empty array if none
+- recommendations: explicit recommendations, required actions, or next steps in the document; empty array if none
+- riskFactors: risks, liabilities, obligations, warnings, or concerns; empty array if none
+- entities: up to 12 key named entities (people, orgs, products, places, amounts, legal terms)
+- targetAudience: specific description, e.g. "Insurance policy holders and corporate travel managers"
+- Be specific to THIS document's actual content, never generic
 - Output only the JSON object, nothing else`;
 
 router.get("/documents/:id/summary", async (req, res) => {
@@ -41,17 +54,15 @@ router.get("/documents/:id/summary", async (req, res) => {
     return;
   }
 
-  const excerpt = doc.content.slice(0, 8000);
+  const excerpt = doc.content.slice(0, 12000);
 
   const completion = await openai.chat.completions.create({
     model: "gpt-4o-mini",
     temperature: 0.3,
+    max_tokens: 1500,
     messages: [
       { role: "system", content: SYSTEM_PROMPT },
-      {
-        role: "user",
-        content: `Document title: "${doc.filename}"\n\nContent:\n${excerpt}`,
-      },
+      { role: "user", content: `Document title: "${doc.filename}"\n\nContent:\n${excerpt}` },
     ],
   });
 
@@ -62,7 +73,12 @@ router.get("/documents/:id/summary", async (req, res) => {
     const cleaned = raw.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "").trim();
     summary = JSON.parse(cleaned);
   } catch {
-    summary = { overview: raw, keyPoints: [], entities: [], documentType: "other", wordCount: 0, readingTimeMinutes: 0 };
+    summary = {
+      overview: raw, executiveSummary: "", keyPoints: [], mainTopics: [],
+      targetAudience: "", sentiment: "neutral", criticalDates: [],
+      recommendations: [], riskFactors: [], entities: [],
+      documentType: "other", complexity: "intermediate", wordCount: 0, readingTimeMinutes: 0,
+    };
   }
 
   res.json({
