@@ -1,29 +1,26 @@
-import { useRef, useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useRef, useState, useEffect, useCallback } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
+import { Slider } from "@/components/ui/slider";
 import {
-  Play, Pause, Download, Loader2, Volume2, AlertCircle,
-  SkipBack, SkipForward, Headphones
+  Play, Pause, Square, Loader2, Volume2, AlertCircle, Headphones, RefreshCw
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 
-const VOICES = [
-  { id: "alloy",   label: "Alloy",   desc: "Neutral, balanced" },
-  { id: "echo",    label: "Echo",    desc: "Clear, male" },
-  { id: "fable",   label: "Fable",   desc: "British, expressive" },
-  { id: "onyx",    label: "Onyx",    desc: "Deep, authoritative" },
-  { id: "nova",    label: "Nova",    desc: "Energetic, female" },
-  { id: "shimmer", label: "Shimmer", desc: "Soft, female" },
-] as const;
-
-function formatTime(s: number) {
-  if (!isFinite(s)) return "0:00";
-  const m = Math.floor(s / 60), sec = Math.floor(s % 60);
-  return `${m}:${sec.toString().padStart(2, "0")}`;
+/* ── helpers ─────────────────────────────────────────── */
+function pct(charIndex: number, total: number) {
+  return total > 0 ? Math.min(100, Math.round((charIndex / total) * 100)) : 0;
 }
 
+function getEnglishVoices(): SpeechSynthesisVoice[] {
+  if (typeof speechSynthesis === "undefined") return [];
+  return speechSynthesis
+    .getVoices()
+    .filter(v => v.lang.startsWith("en"))
+    .sort((a, b) => (a.localService ? -1 : 1) - (b.localService ? -1 : 1));
+}
+
+/* ── props ───────────────────────────────────────────── */
 interface TtsPlayerProps {
   open: boolean;
   onOpenChange: (o: boolean) => void;
@@ -31,261 +28,283 @@ interface TtsPlayerProps {
   filename: string;
 }
 
+type Status = "idle" | "loading" | "ready" | "speaking" | "paused" | "done" | "error";
+
+/* ── component ───────────────────────────────────────── */
 export function TtsPlayerDialog({ open, onOpenChange, documentId, filename }: TtsPlayerProps) {
-  const [voice, setVoice] = useState<string>("alloy");
-  const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
+  const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string | null>(null);
-  const [audioUrl, setAudioUrl] = useState<string | null>(null);
-  const [blob, setBlob] = useState<Blob | null>(null);
-  const [playing, setPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [truncated, setTruncated] = useState(false);
-  const [charCount, setCharCount] = useState<number | null>(null);
-  const [totalChars, setTotalChars] = useState<number | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const prevObjectUrl = useRef<string | null>(null);
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [selectedVoice, setSelectedVoice] = useState<string>("");
+  const [rate, setRate] = useState(1);
+  const [pitch, setPitch] = useState(1);
+  const [progress, setProgress] = useState(0);
+  const [charIndex, setCharIndex] = useState(0);
+
+  const textRef = useRef<string>("");
+  const uttRef = useRef<SpeechSynthesisUtterance | null>(null);
+
+  /* load voices (browser may load them asynchronously) */
+  const loadVoices = useCallback(() => {
+    const v = getEnglishVoices();
+    if (v.length) {
+      setVoices(v);
+      setSelectedVoice(prev => prev || v[0].name);
+    }
+  }, []);
 
   useEffect(() => {
-    if (!open) {
-      audioRef.current?.pause();
-      setPlaying(false);
+    loadVoices();
+    if (typeof speechSynthesis !== "undefined") {
+      speechSynthesis.addEventListener("voiceschanged", loadVoices);
+      return () => speechSynthesis.removeEventListener("voiceschanged", loadVoices);
+    }
+  }, [loadVoices]);
+
+  /* stop speech when dialog closes */
+  useEffect(() => {
+    if (!open && typeof speechSynthesis !== "undefined") {
+      speechSynthesis.cancel();
+      setStatus(s => (s === "speaking" || s === "paused") ? "ready" : s);
+      setProgress(0);
+      setCharIndex(0);
     }
   }, [open]);
 
+  /* cleanup on unmount */
   useEffect(() => {
-    return () => {
-      if (prevObjectUrl.current) URL.revokeObjectURL(prevObjectUrl.current);
-    };
+    return () => { if (typeof speechSynthesis !== "undefined") speechSynthesis.cancel(); };
   }, []);
 
-  const generate = async () => {
+  /* fetch document text */
+  const loadText = async () => {
     setStatus("loading");
     setError(null);
-    setAudioUrl(null);
-    setBlob(null);
-    setPlaying(false);
-    setCurrentTime(0);
-    setDuration(0);
-
+    setProgress(0);
+    setCharIndex(0);
     try {
-      const res = await fetch(`/api/documents/${documentId}/tts`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ voice }),
-      });
-
+      const res = await fetch(`/api/documents/${documentId}/content`);
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         throw new Error(body.error || `Server error ${res.status}`);
       }
-
-      setTruncated(res.headers.get("X-Truncated") === "true");
-      const cc = res.headers.get("X-Char-Count");
-      const tc = res.headers.get("X-Total-Chars");
-      if (cc) setCharCount(parseInt(cc));
-      if (tc) setTotalChars(parseInt(tc));
-
-      const audioBlob = await res.blob();
-      if (prevObjectUrl.current) URL.revokeObjectURL(prevObjectUrl.current);
-      const url = URL.createObjectURL(audioBlob);
-      prevObjectUrl.current = url;
-      setBlob(audioBlob);
-      setAudioUrl(url);
+      const data = await res.json();
+      textRef.current = (data.content as string) || "";
+      if (!textRef.current.trim()) throw new Error("Document has no readable text.");
       setStatus("ready");
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Failed to generate audio");
+      setError(e instanceof Error ? e.message : "Failed to load document text.");
       setStatus("error");
     }
   };
 
-  const togglePlay = () => {
-    const a = audioRef.current;
-    if (!a) return;
-    if (playing) { a.pause(); setPlaying(false); }
-    else { a.play(); setPlaying(true); }
+  /* speak */
+  const speak = () => {
+    if (!textRef.current || typeof speechSynthesis === "undefined") return;
+    speechSynthesis.cancel();
+
+    const utt = new SpeechSynthesisUtterance(textRef.current);
+    const voice = voices.find(v => v.name === selectedVoice);
+    if (voice) utt.voice = voice;
+    utt.rate = rate;
+    utt.pitch = pitch;
+
+    utt.onboundary = (e) => {
+      setCharIndex(e.charIndex);
+      setProgress(pct(e.charIndex, textRef.current.length));
+    };
+    utt.onend = () => { setStatus("done"); setProgress(100); };
+    utt.onerror = (e) => {
+      if (e.error === "interrupted" || e.error === "canceled") return;
+      setError(`Speech error: ${e.error}`);
+      setStatus("error");
+    };
+
+    uttRef.current = utt;
+    speechSynthesis.speak(utt);
+    setStatus("speaking");
   };
 
-  const seek = (e: React.MouseEvent<HTMLDivElement>) => {
-    const a = audioRef.current;
-    if (!a || !duration) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const ratio = (e.clientX - rect.left) / rect.width;
-    a.currentTime = ratio * duration;
+  const pause = () => {
+    speechSynthesis.pause();
+    setStatus("paused");
   };
 
-  const skip = (delta: number) => {
-    const a = audioRef.current;
-    if (!a) return;
-    a.currentTime = Math.max(0, Math.min(duration, a.currentTime + delta));
+  const resume = () => {
+    speechSynthesis.resume();
+    setStatus("speaking");
   };
 
-  const download = () => {
-    if (!blob) return;
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `${filename}.mp3`;
-    a.click();
+  const stop = () => {
+    speechSynthesis.cancel();
+    setStatus("ready");
+    setProgress(0);
+    setCharIndex(0);
   };
 
-  const progress = duration ? (currentTime / duration) * 100 : 0;
+  const restart = () => { stop(); setTimeout(speak, 100); };
+
+  /* derived */
+  const totalChars = textRef.current.length;
+  const readChars = charIndex;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[520px] bg-card border-border">
+      <DialogContent className="sm:max-w-[500px] bg-card border-border">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base">
             <Headphones className="w-4 h-4 text-cyan-400" />
             Text to Speech
           </DialogTitle>
+          <DialogDescription className="truncate text-xs text-muted-foreground">
+            {filename}
+          </DialogDescription>
         </DialogHeader>
 
-        {/* Document name */}
-        <div className="px-3 py-2 rounded-lg bg-muted/40 border border-border text-sm text-muted-foreground truncate">
-          {filename}
-        </div>
-
-        {/* Voice selector + generate */}
-        <div className="space-y-3">
-          <div className="flex gap-2 items-end">
-            <div className="flex-1 space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Voice</label>
-              <Select value={voice} onValueChange={setVoice} disabled={status === "loading"}>
-                <SelectTrigger className="h-9">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {VOICES.map(v => (
-                    <SelectItem key={v.id} value={v.id}>
-                      <span className="font-medium">{v.label}</span>
-                      <span className="text-muted-foreground ml-2 text-xs">{v.desc}</span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <Button
-              onClick={generate}
-              disabled={status === "loading"}
-              className="h-9 px-4"
-              style={{ background: "linear-gradient(135deg, hsl(192 100% 38%), hsl(210 100% 42%))", color: "#fff" }}
-            >
-              {status === "loading" ? (
-                <><Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" />Generating…</>
-              ) : (
-                <><Volume2 className="w-3.5 h-3.5 mr-2" />{status === "ready" ? "Re-generate" : "Generate Audio"}</>
-              )}
-            </Button>
-          </div>
-
-          {/* Truncation notice */}
-          {truncated && charCount && totalChars && (
-            <p className="text-xs text-amber-400/80 flex items-center gap-1.5">
-              <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-              Playing first {charCount.toLocaleString()} of {totalChars.toLocaleString()} characters (24 k limit).
+        {/* Load text step */}
+        {status === "idle" && (
+          <div className="flex flex-col items-center gap-4 py-6">
+            <p className="text-sm text-muted-foreground text-center">
+              Click below to load the document text and prepare it for playback.
             </p>
-          )}
-        </div>
-
-        {/* Error */}
-        {status === "error" && error && (
-          <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-destructive/10 border border-destructive/20 text-sm text-destructive">
-            <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
-            {error}
+            <Button onClick={loadText}
+              style={{ background: "linear-gradient(135deg, hsl(192 100% 38%), hsl(210 100% 42%))", color: "#fff" }}>
+              <Volume2 className="w-4 h-4 mr-2" /> Load Document
+            </Button>
           </div>
         )}
 
-        {/* Audio player */}
-        {audioUrl && (
-          <>
-            <audio
-              ref={audioRef}
-              src={audioUrl}
-              onTimeUpdate={() => setCurrentTime(audioRef.current?.currentTime ?? 0)}
-              onDurationChange={() => setDuration(audioRef.current?.duration ?? 0)}
-              onEnded={() => setPlaying(false)}
-            />
+        {status === "loading" && (
+          <div className="flex flex-col items-center gap-3 py-8">
+            <Loader2 className="w-8 h-8 animate-spin text-cyan-400" />
+            <p className="text-sm text-muted-foreground">Loading document text…</p>
+          </div>
+        )}
 
-            <div className="rounded-xl border border-border/60 bg-muted/20 p-4 space-y-4">
-              {/* Progress bar */}
-              <div
-                className="relative h-2 rounded-full bg-muted/60 cursor-pointer group"
-                onClick={seek}
-              >
+        {status === "error" && (
+          <>
+            <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-destructive/10 border border-destructive/20 text-sm text-destructive">
+              <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+              {error}
+            </div>
+            <Button variant="outline" size="sm" onClick={loadText} className="self-start">
+              <RefreshCw className="w-3.5 h-3.5 mr-1.5" /> Retry
+            </Button>
+          </>
+        )}
+
+        {(status === "ready" || status === "speaking" || status === "paused" || status === "done") && (
+          <div className="space-y-5">
+            {/* Voice selector */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Voice</label>
+              {voices.length === 0 ? (
+                <p className="text-xs text-amber-400/80 flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" /> No voices found — your browser may not support speech synthesis.
+                </p>
+              ) : (
+                <Select value={selectedVoice} onValueChange={setSelectedVoice}
+                  disabled={status === "speaking" || status === "paused"}>
+                  <SelectTrigger className="h-9 text-sm">
+                    <SelectValue placeholder="Select voice" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-52">
+                    {voices.map(v => (
+                      <SelectItem key={v.name} value={v.name}>
+                        <span className="font-medium">{v.name}</span>
+                        <span className="text-muted-foreground ml-2 text-xs">{v.lang}</span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+
+            {/* Rate & Pitch */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex justify-between">
+                  <span>Speed</span>
+                  <span className="text-foreground tabular-nums">{rate.toFixed(1)}×</span>
+                </label>
+                <Slider min={0.5} max={2} step={0.1} value={[rate]}
+                  onValueChange={([v]) => setRate(v)}
+                  disabled={status === "speaking" || status === "paused"} />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex justify-between">
+                  <span>Pitch</span>
+                  <span className="text-foreground tabular-nums">{pitch.toFixed(1)}</span>
+                </label>
+                <Slider min={0.5} max={2} step={0.1} value={[pitch]}
+                  onValueChange={([v]) => setPitch(v)}
+                  disabled={status === "speaking" || status === "paused"} />
+              </div>
+            </div>
+
+            {/* Progress bar */}
+            <div className="space-y-1.5">
+              <div className="relative h-2 rounded-full bg-muted/60 overflow-hidden">
                 <div
-                  className="absolute inset-y-0 left-0 rounded-full transition-all"
+                  className="absolute inset-y-0 left-0 rounded-full transition-all duration-300"
                   style={{
                     width: `${progress}%`,
                     background: "linear-gradient(90deg, hsl(192 100% 48%), hsl(210 100% 55%))",
                     boxShadow: "0 0 8px hsl(192 100% 48% / 0.5)",
                   }}
                 />
-                <div
-                  className="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-cyan-300 shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
-                  style={{ left: `calc(${progress}% - 6px)` }}
-                />
               </div>
-
-              {/* Time */}
               <div className="flex justify-between text-xs text-muted-foreground tabular-nums">
-                <span>{formatTime(currentTime)}</span>
-                <span>{formatTime(duration)}</span>
-              </div>
-
-              {/* Controls */}
-              <div className="flex items-center justify-center gap-3">
-                <Button
-                  variant="ghost" size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                  onClick={() => skip(-10)}
-                >
-                  <SkipBack className="w-4 h-4" />
-                </Button>
-
-                <Button
-                  size="icon"
-                  className="h-12 w-12 rounded-full text-white shadow-lg"
-                  style={{
-                    background: "linear-gradient(135deg, hsl(192 100% 40%), hsl(210 100% 45%))",
-                    boxShadow: "0 0 20px hsl(192 100% 48% / 0.4)",
-                  }}
-                  onClick={togglePlay}
-                >
-                  {playing
-                    ? <Pause className="w-5 h-5" />
-                    : <Play className="w-5 h-5 ml-0.5" />
-                  }
-                </Button>
-
-                <Button
-                  variant="ghost" size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                  onClick={() => skip(10)}
-                >
-                  <SkipForward className="w-4 h-4" />
-                </Button>
-              </div>
-
-              {/* Download */}
-              <div className="flex justify-center pt-1">
-                <Button
-                  variant="outline" size="sm"
-                  className="text-xs gap-1.5 h-8 border-border/60"
-                  onClick={download}
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  Download MP3
-                </Button>
+                <span>{readChars.toLocaleString()} chars read</span>
+                <span>{totalChars.toLocaleString()} total · {progress}%</span>
               </div>
             </div>
-          </>
-        )}
 
-        {/* Idle state hint */}
-        {status === "idle" && (
-          <p className="text-center text-xs text-muted-foreground/60 py-2">
-            Select a voice and click Generate Audio to convert this document to speech.
-          </p>
+            {/* Status label */}
+            {status === "done" && (
+              <p className="text-center text-xs text-emerald-400 font-medium">Finished reading the document.</p>
+            )}
+
+            {/* Controls */}
+            <div className="flex items-center justify-center gap-3 pt-1">
+              {/* Stop */}
+              <Button variant="outline" size="icon" className="h-9 w-9"
+                onClick={stop} disabled={status === "ready" || status === "done"} title="Stop">
+                <Square className="w-4 h-4" />
+              </Button>
+
+              {/* Play / Pause / Resume */}
+              {status === "ready" || status === "done" ? (
+                <Button size="icon" className="h-14 w-14 rounded-full text-white shadow-lg"
+                  style={{ background: "linear-gradient(135deg, hsl(192 100% 40%), hsl(210 100% 45%))", boxShadow: "0 0 20px hsl(192 100% 48% / 0.4)" }}
+                  onClick={speak} disabled={voices.length === 0} title="Play">
+                  <Play className="w-6 h-6 ml-0.5" />
+                </Button>
+              ) : status === "speaking" ? (
+                <Button size="icon" className="h-14 w-14 rounded-full text-white shadow-lg"
+                  style={{ background: "linear-gradient(135deg, hsl(192 100% 40%), hsl(210 100% 45%))", boxShadow: "0 0 20px hsl(192 100% 48% / 0.4)" }}
+                  onClick={pause} title="Pause">
+                  <Pause className="w-6 h-6" />
+                </Button>
+              ) : (
+                <Button size="icon" className="h-14 w-14 rounded-full text-white shadow-lg"
+                  style={{ background: "linear-gradient(135deg, hsl(192 100% 40%), hsl(210 100% 45%))", boxShadow: "0 0 20px hsl(192 100% 48% / 0.4)" }}
+                  onClick={resume} title="Resume">
+                  <Play className="w-6 h-6 ml-0.5" />
+                </Button>
+              )}
+
+              {/* Restart */}
+              <Button variant="outline" size="icon" className="h-9 w-9"
+                onClick={restart} disabled={status === "ready"} title="Restart">
+                <RefreshCw className="w-4 h-4" />
+              </Button>
+            </div>
+
+            <p className="text-center text-xs text-muted-foreground/50">
+              Uses your browser's built-in speech engine · adjust voice & speed above
+            </p>
+          </div>
         )}
       </DialogContent>
     </Dialog>

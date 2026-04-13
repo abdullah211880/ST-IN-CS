@@ -141,6 +141,26 @@ router.get("/documents/:id", async (req, res) => {
   });
 });
 
+router.get("/documents/:id/content", async (req, res) => {
+  const doc = await db
+    .select({ id: documentsTable.id, content: documentsTable.content, filename: documentsTable.filename })
+    .from(documentsTable)
+    .where(eq(documentsTable.id, req.params.id))
+    .then(r => r[0]);
+
+  if (!doc) {
+    res.status(404).json({ error: "Document not found" });
+    return;
+  }
+
+  if (!doc.content) {
+    res.status(422).json({ error: "Document has no extractable text content" });
+    return;
+  }
+
+  res.json({ id: doc.id, filename: doc.filename, content: doc.content });
+});
+
 router.delete("/documents/:id", async (req, res) => {
   await db.delete(chunksTable).where(eq(chunksTable.documentId, req.params.id));
   await db.delete(documentsTable).where(eq(documentsTable.id, req.params.id));
