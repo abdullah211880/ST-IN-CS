@@ -10,9 +10,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { FileText, Trash2, UploadCloud, AlertCircle, CheckCircle2, Loader2, Database, Headphones, Lightbulb } from "lucide-react";
+import { FileText, Trash2, UploadCloud, AlertCircle, CheckCircle2, Loader2, Database, Headphones, Lightbulb, AlignLeft } from "lucide-react";
 import { TtsPlayerDialog } from "@/components/tts-player";
 import { SuggestedQuestionsDialog } from "@/components/suggested-questions";
+import { SummaryDialog } from "@/components/summary-dialog";
 
 export default function Documents() {
   const { toast } = useToast();
@@ -30,6 +31,7 @@ export default function Documents() {
 
   const [ttsDoc, setTtsDoc] = useState<{ id: string; filename: string } | null>(null);
   const [questionsDoc, setQuestionsDoc] = useState<{ id: string; filename: string } | null>(null);
+  const [summaryDoc, setSummaryDoc] = useState<{ id: string; filename: string } | null>(null);
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -200,6 +202,16 @@ export default function Documents() {
                           <Button
                             variant="ghost"
                             size="icon"
+                            title="Summarize document"
+                            disabled={doc.status !== "ready"}
+                            onClick={() => setSummaryDoc({ id: doc.id, filename: doc.filename })}
+                            className="text-emerald-400 hover:text-emerald-300 hover:bg-emerald-400/10 disabled:opacity-30"
+                          >
+                            <AlignLeft className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             title="Suggest questions"
                             disabled={doc.status !== "ready"}
                             onClick={() => setQuestionsDoc({ id: doc.id, filename: doc.filename })}
@@ -251,6 +263,15 @@ export default function Documents() {
           onOpenChange={(open) => { if (!open) setQuestionsDoc(null); }}
           documentId={questionsDoc.id}
           filename={questionsDoc.filename}
+        />
+      )}
+
+      {summaryDoc && (
+        <SummaryDialog
+          open={!!summaryDoc}
+          onOpenChange={(open) => { if (!open) setSummaryDoc(null); }}
+          documentId={summaryDoc.id}
+          filename={summaryDoc.filename}
         />
       )}
     </div>
