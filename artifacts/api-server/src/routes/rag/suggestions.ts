@@ -2,11 +2,11 @@ import { Router } from "express";
 import { db, suggestionsTable } from "@workspace/db";
 import { eq, desc, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
+import { sendSuggestionEmail } from "../../lib/mailer.js";
 
 const router = Router();
 
 const VALID_CATEGORIES = ["Feature", "Integration", "Improvement", "Bug Report"];
-const VALID_STATUSES   = ["pending", "reviewed", "planned", "shipped"];
 
 /* ── GET all suggestions ─────────────────────────────────── */
 router.get("/suggestions", async (_req, res) => {
@@ -26,7 +26,7 @@ router.post("/suggestions", async (req, res) => {
     res.status(400).json({ error: "Invalid category." }); return;
   }
 
-  const row = await db.insert(suggestionsTable).values({
+  const saved = await db.insert(suggestionsTable).values({
     id:          randomUUID(),
     title:       title.trim(),
     category:    category || "Feature",
@@ -36,7 +36,16 @@ router.post("/suggestions", async (req, res) => {
     votes:       0,
   }).returning();
 
-  res.status(201).json(row[0]);
+  // Respond immediately — email fires in background
+  res.status(201).json(saved[0]);
+
+  sendSuggestionEmail({
+    title:       saved[0].title,
+    category:    saved[0].category,
+    description: saved[0].description,
+    email:       saved[0].email,
+    submittedAt: saved[0].createdAt,
+  }).catch(err => console.error("[mailer] Failed to send suggestion email:", err));
 });
 
 /* ── POST upvote ─────────────────────────────────────────── */
