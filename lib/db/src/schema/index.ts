@@ -5,3 +5,4 @@ export * from "./documents";
 export * from "./chunks";
 export * from "./sessions";
 export * from "./suggestions";
+export * from "./goals";

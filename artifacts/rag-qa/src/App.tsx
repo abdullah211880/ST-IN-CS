@@ -9,6 +9,8 @@ import Home from "@/pages/home";
 import Documents from "@/pages/documents";
 import Sessions from "@/pages/sessions";
 import SessionQA from "@/pages/session-qa";
+import Goals from "@/pages/goals";
+import GoalDetail from "@/pages/goal-detail";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient({
@@ -31,6 +33,8 @@ function Router() {
             <Route path="/documents" component={Documents} />
             <Route path="/sessions" component={Sessions} />
             <Route path="/sessions/:id" component={SessionQA} />
+            <Route path="/goals/:id" component={GoalDetail} />
+            <Route path="/goals" component={Goals} />
             <Route component={NotFound} />
           </Switch>
         </Layout>

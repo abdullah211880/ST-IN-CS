@@ -3,7 +3,7 @@ import { Link, useLocation } from "wouter";
 import {
   Database, FileText, MessageSquare, Home,
   Bot, Send, X, Loader2, ChevronDown, Sparkles,
-  ChevronLeft, ChevronRight, Lightbulb, Sun, Moon,
+  ChevronLeft, ChevronRight, Lightbulb, Sun, Moon, Target,
 } from "lucide-react";
 import { SuggestFeatureDialog } from "@/components/suggest-feature-dialog";
 import { useTheme } from "@/contexts/theme-context";
@@ -14,8 +14,9 @@ interface LayoutProps { children: ReactNode; }
 interface ChatMessage { role: "user" | "assistant"; content: string; }
 
 const NAV = [
-  { name: "Documents", href: "/documents", icon: FileText,     color: "192" },
+  { name: "Documents", href: "/documents", icon: FileText,      color: "192" },
   { name: "Sessions",  href: "/sessions",  icon: MessageSquare, color: "260" },
+  { name: "Goals",     href: "/goals",     icon: Target,        color: "142" },
 ];
 
 /* ─── animated orb ──────────────────────────────────────── */
