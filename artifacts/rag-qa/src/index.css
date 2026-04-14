@@ -67,67 +67,74 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-/* ─── LIGHT MODE (intentionally matches dark for forced dark-only theme) ─── */
+/* ─── LIGHT MODE ─── */
 :root {
-  --button-outline: rgba(255,255,255, .08);
-  --badge-outline: rgba(255,255,255, .05);
-  --opaque-button-border-intensity: 9;
-  --elevate-1: rgba(255,255,255, .04);
-  --elevate-2: rgba(255,255,255, .08);
+  --button-outline: rgba(0,0,0, .06);
+  --badge-outline: rgba(0,0,0, .04);
+  --opaque-button-border-intensity: 6;
+  --elevate-1: rgba(0,0,0, .03);
+  --elevate-2: rgba(0,0,0, .06);
 
-  /* Midnight navy background */
-  --background: 224 71% 4%;
-  --foreground: 210 60% 92%;
+  --background: 210 40% 98%;
+  --foreground: 222 47% 11%;
 
-  --border: 218 48% 14%;
-  --input: 220 55% 8%;
-  --ring: 192 100% 50%;
+  --border: 214 32% 88%;
+  --input: 210 40% 96%;
+  --ring: 192 80% 40%;
 
-  /* Dark-navy cards with blue tint */
-  --card: 220 62% 8%;
-  --card-foreground: 210 60% 92%;
-  --card-border: 218 50% 18%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+  --card-border: 214 32% 87%;
 
-  /* Deepest sidebar */
-  --sidebar: 228 80% 3%;
-  --sidebar-foreground: 210 50% 88%;
-  --sidebar-border: 220 50% 10%;
-  --sidebar-primary: 192 100% 48%;
-  --sidebar-primary-foreground: 224 71% 4%;
-  --sidebar-accent: 222 55% 10%;
-  --sidebar-accent-foreground: 210 60% 92%;
-  --sidebar-ring: 192 100% 48%;
+  --sidebar: 216 34% 97%;
+  --sidebar-foreground: 222 47% 18%;
+  --sidebar-border: 214 32% 87%;
+  --sidebar-primary: 192 100% 38%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 210 40% 93%;
+  --sidebar-accent-foreground: 222 47% 11%;
+  --sidebar-ring: 192 100% 38%;
 
-  --popover: 222 65% 7%;
-  --popover-foreground: 210 60% 92%;
-  --popover-border: 218 48% 16%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+  --popover-border: 214 32% 87%;
 
-  /* Electric cyan primary */
-  --primary: 192 100% 48%;
-  --primary-foreground: 224 71% 4%;
+  --primary: 192 100% 36%;
+  --primary-foreground: 0 0% 100%;
 
-  --secondary: 220 55% 11%;
-  --secondary-foreground: 210 50% 88%;
+  --secondary: 210 40% 93%;
+  --secondary-foreground: 222 47% 18%;
 
-  --muted: 220 52% 10%;
-  --muted-foreground: 215 30% 52%;
+  --muted: 210 40% 94%;
+  --muted-foreground: 215 25% 45%;
 
-  --accent: 220 55% 13%;
-  --accent-foreground: 210 60% 92%;
+  --accent: 210 40% 93%;
+  --accent-foreground: 222 47% 11%;
 
   --destructive: 0 72% 50%;
-  --destructive-foreground: 210 40% 98%;
+  --destructive-foreground: 0 0% 100%;
 
-  --chart-1: 192 100% 48%;
-  --chart-2: 210 100% 65%;
-  --chart-3: 175 80% 42%;
-  --chart-4: 250 70% 65%;
-  --chart-5: 30 100% 60%;
+  --chart-1: 192 100% 38%;
+  --chart-2: 210 90% 55%;
+  --chart-3: 175 70% 38%;
+  --chart-4: 250 65% 58%;
+  --chart-5: 30 100% 52%;
 
   --app-font-sans: 'Plus Jakarta Sans', sans-serif;
   --app-font-serif: Georgia, serif;
   --app-font-mono: 'Space Mono', monospace;
   --radius: 0.625rem;
+
+  /* Sidebar theming helpers */
+  --sidebar-grad-from: hsl(216 34% 98%);
+  --sidebar-grad-to:   hsl(213 30% 96%);
+  --sidebar-border-c:  hsl(192 40% 72% / 0.25);
+  --sidebar-divider:   hsl(214 32% 88%);
+  --sidebar-orb-op:    0.055;
+  --feature-card-bg:   hsl(210 40% 96%);
+  --feature-card-bdr:  hsl(214 32% 88%);
+  --open-tab-from:     hsl(192 60% 75% / 0.85);
+  --open-tab-to:       hsl(210 60% 80% / 0.85);
 
   --sidebar-primary-border: hsl(from hsl(var(--sidebar-primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
   --sidebar-accent-border: hsl(from hsl(var(--sidebar-accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
@@ -138,7 +145,7 @@
   --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
 }
 
-/* ─── DARK MODE (same palette, consistent) ─── */
+/* ─── DARK MODE ─── */
 .dark {
   --button-outline: rgba(255,255,255, .08);
   --badge-outline: rgba(255,255,255, .05);
@@ -190,6 +197,17 @@
   --chart-3: 175 80% 42%;
   --chart-4: 250 70% 65%;
   --chart-5: 30 100% 60%;
+
+  /* Sidebar theming helpers */
+  --sidebar-grad-from: hsl(228 80% 4%);
+  --sidebar-grad-to:   hsl(225 70% 3%);
+  --sidebar-border-c:  hsl(192 40% 20% / 0.2);
+  --sidebar-divider:   hsl(192 40% 20% / 0.15);
+  --sidebar-orb-op:    1;
+  --feature-card-bg:   hsl(228 50% 8% / 0.8);
+  --feature-card-bdr:  hsl(var(--border) / 0.4);
+  --open-tab-from:     hsl(192 80% 20% / 0.9);
+  --open-tab-to:       hsl(260 70% 25% / 0.9);
 }
 
 @layer base {
@@ -199,10 +217,20 @@
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
+    min-height: 100vh;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  html:not(.dark) body {
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -20%, hsl(192 80% 88% / 0.35), transparent),
+      radial-gradient(ellipse 60% 40% at 80% 80%, hsl(210 80% 90% / 0.25), transparent);
+  }
+
+  html.dark body {
     background-image:
       radial-gradient(ellipse 80% 50% at 50% -20%, hsl(210 80% 12% / 0.6), transparent),
       radial-gradient(ellipse 60% 40% at 80% 80%, hsl(192 100% 20% / 0.08), transparent);
-    min-height: 100vh;
   }
 }
 

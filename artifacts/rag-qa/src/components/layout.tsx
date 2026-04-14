@@ -3,9 +3,10 @@ import { Link, useLocation } from "wouter";
 import {
   Database, FileText, MessageSquare, Home,
   Bot, Send, X, Loader2, ChevronDown, Sparkles,
-  ChevronLeft, ChevronRight, Lightbulb,
+  ChevronLeft, ChevronRight, Lightbulb, Sun, Moon,
 } from "lucide-react";
 import { SuggestFeatureDialog } from "@/components/suggest-feature-dialog";
+import { useTheme } from "@/contexts/theme-context";
 import { cn } from "@/lib/utils";
 
 /* ─── types ─────────────────────────────────────────────── */
@@ -198,6 +199,7 @@ export function Layout({ children }: LayoutProps) {
   const [mounted, setMounted] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [suggestOpen, setSuggestOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => { const t = setTimeout(() => setMounted(true), 50); return () => clearTimeout(t); }, []);
 
@@ -213,7 +215,7 @@ export function Layout({ children }: LayoutProps) {
           width: 20,
           height: 72,
           borderRadius: "0 10px 10px 0",
-          background: "linear-gradient(180deg, hsl(192 80% 20%/0.9), hsl(260 70% 25%/0.9))",
+          background: "linear-gradient(180deg, var(--open-tab-from), var(--open-tab-to))",
           border: "1px solid hsl(192 60% 40%/0.3)",
           borderLeft: "none",
           boxShadow: "4px 0 16px hsl(192 100% 48%/0.2)",
@@ -222,7 +224,7 @@ export function Layout({ children }: LayoutProps) {
           transform: `translateY(-50%) translateX(${sidebarOpen ? "-100%" : "0"})`,
         }}
       >
-        <ChevronRight className="w-3 h-3 text-cyan-300" />
+        <ChevronRight className="w-3 h-3 text-cyan-600 dark:text-cyan-300" />
       </button>
 
       {/* Sidebar */}
@@ -231,15 +233,17 @@ export function Layout({ children }: LayoutProps) {
         style={{
           width: sidebarOpen ? 256 : 0,
           minWidth: 0,
-          transition: "width 0.3s cubic-bezier(0.4,0,0.2,1)",
-          background: "linear-gradient(180deg, hsl(228 80% 4%) 0%, hsl(225 70% 3%) 100%)",
-          borderRight: sidebarOpen ? "1px solid hsl(192 40% 20% / 0.2)" : "none",
+          transition: "width 0.3s cubic-bezier(0.4,0,0.2,1), background 0.3s ease",
+          background: `linear-gradient(180deg, var(--sidebar-grad-from) 0%, var(--sidebar-grad-to) 100%)`,
+          borderRight: sidebarOpen ? `1px solid var(--sidebar-border-c)` : "none",
         }}
       >
         {/* Animated background orbs */}
-        <SidebarOrb cx="20%"  cy="15%"  r="180px" hue="192" delay="0s" />
-        <SidebarOrb cx="80%"  cy="40%"  r="140px" hue="260" delay="2.5s" />
-        <SidebarOrb cx="30%"  cy="75%"  r="160px" hue="210" delay="1.2s" />
+        <div style={{ opacity: "var(--sidebar-orb-op)" }}>
+          <SidebarOrb cx="20%"  cy="15%"  r="180px" hue="192" delay="0s" />
+          <SidebarOrb cx="80%"  cy="40%"  r="140px" hue="260" delay="2.5s" />
+          <SidebarOrb cx="30%"  cy="75%"  r="160px" hue="210" delay="1.2s" />
+        </div>
 
         {/* Animated top accent bar */}
         <div className="absolute top-0 left-0 right-0 h-0.5"
@@ -253,7 +257,7 @@ export function Layout({ children }: LayoutProps) {
         {/* Logo / home link */}
         <div
           className="relative z-10 h-16 flex items-center px-4 shrink-0"
-          style={{ borderBottom: "1px solid hsl(192 40% 20% / 0.15)" }}
+          style={{ borderBottom: "1px solid var(--sidebar-divider)" }}
         >
           <Link href="/" className="flex items-center flex-1 min-w-0 group transition-all duration-300">
             {/* Animated icon */}
@@ -390,19 +394,19 @@ export function Layout({ children }: LayoutProps) {
                 opacity: mounted ? 1 : 0,
                 transform: mounted ? "translateX(0)" : "translateX(-10px)",
                 transition: "opacity 0.4s ease 0.28s, transform 0.4s ease 0.28s, background 0.2s, box-shadow 0.2s",
-                background: "hsl(38 80% 12%/0.5)",
-                border: "1px solid hsl(38 80% 40%/0.2)",
-                color: "#fbbf24",
+                background: theme === "dark" ? "hsl(38 80% 12%/0.5)" : "hsl(38 90% 92%)",
+                border: theme === "dark" ? "1px solid hsl(38 80% 40%/0.2)" : "1px solid hsl(38 80% 75%/0.5)",
+                color: theme === "dark" ? "#fbbf24" : "#92400e",
               }}
               onMouseEnter={e => {
-                (e.currentTarget as HTMLElement).style.background = "hsl(38 80% 16%/0.7)";
-                (e.currentTarget as HTMLElement).style.boxShadow = "0 0 12px hsl(38 100% 50%/0.2)";
-                (e.currentTarget as HTMLElement).style.borderColor = "hsl(38 80% 50%/0.35)";
+                (e.currentTarget as HTMLElement).style.background = theme === "dark" ? "hsl(38 80% 16%/0.7)" : "hsl(38 90% 88%)";
+                (e.currentTarget as HTMLElement).style.boxShadow = "0 0 12px hsl(38 100% 50%/0.15)";
+                (e.currentTarget as HTMLElement).style.borderColor = theme === "dark" ? "hsl(38 80% 50%/0.35)" : "hsl(38 80% 65%/0.6)";
               }}
               onMouseLeave={e => {
-                (e.currentTarget as HTMLElement).style.background = "hsl(38 80% 12%/0.5)";
+                (e.currentTarget as HTMLElement).style.background = theme === "dark" ? "hsl(38 80% 12%/0.5)" : "hsl(38 90% 92%)";
                 (e.currentTarget as HTMLElement).style.boxShadow = "";
-                (e.currentTarget as HTMLElement).style.borderColor = "hsl(38 80% 40%/0.2)";
+                (e.currentTarget as HTMLElement).style.borderColor = theme === "dark" ? "hsl(38 80% 40%/0.2)" : "hsl(38 80% 75%/0.5)";
               }}
             >
               <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all duration-200 group-hover:scale-110"
@@ -438,8 +442,8 @@ export function Layout({ children }: LayoutProps) {
                   key={f.label}
                   className="flex items-center gap-2 px-2 py-1.5 rounded-lg"
                   style={{
-                    background: "hsl(228 50% 8%/0.8)",
-                    border: `1px solid ${f.color}18`,
+                    background: "var(--feature-card-bg)",
+                    border: `1px solid ${f.color}22`,
                     opacity: mounted ? 1 : 0,
                     transform: mounted ? "translateX(0)" : "translateX(-8px)",
                     transition: `opacity 0.4s ease ${0.3 + i * 0.07}s, transform 0.4s ease ${0.3 + i * 0.07}s`,
@@ -464,7 +468,7 @@ export function Layout({ children }: LayoutProps) {
         {/* User footer */}
         <div
           className="relative z-10 shrink-0 px-4 py-3 flex items-center gap-3"
-          style={{ borderTop: "1px solid hsl(192 40% 20% / 0.15)" }}
+          style={{ borderTop: "1px solid var(--sidebar-divider)" }}
         >
           <div
             className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
@@ -480,6 +484,36 @@ export function Layout({ children }: LayoutProps) {
               <span className="text-[10px] text-muted-foreground/50">Ready</span>
             </div>
           </div>
+
+          {/* Theme toggle */}
+          <button
+            onClick={toggleTheme}
+            aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            title={theme === "dark" ? "Light mode" : "Dark mode"}
+            className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 group"
+            style={{
+              background: theme === "dark"
+                ? "hsl(50 80% 20%/0.5)"
+                : "hsl(222 60% 20%/0.12)",
+              border: theme === "dark"
+                ? "1px solid hsl(50 80% 50%/0.25)"
+                : "1px solid hsl(222 60% 50%/0.2)",
+            }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLElement).style.transform = "scale(1.1)";
+              (e.currentTarget as HTMLElement).style.boxShadow = theme === "dark"
+                ? "0 0 10px hsl(50 100% 50%/0.25)"
+                : "0 0 10px hsl(222 80% 60%/0.2)";
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLElement).style.transform = "scale(1)";
+              (e.currentTarget as HTMLElement).style.boxShadow = "";
+            }}
+          >
+            {theme === "dark"
+              ? <Sun  className="w-3.5 h-3.5" style={{ color: "#fbbf24" }} />
+              : <Moon className="w-3.5 h-3.5" style={{ color: "#6366f1" }} />}
+          </button>
         </div>
       </aside>
 
