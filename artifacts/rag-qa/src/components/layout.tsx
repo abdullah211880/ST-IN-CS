@@ -3,8 +3,9 @@ import { Link, useLocation } from "wouter";
 import {
   Database, FileText, MessageSquare, Home,
   Bot, Send, X, Loader2, ChevronDown, Sparkles,
-  ChevronLeft, ChevronRight,
+  ChevronLeft, ChevronRight, Lightbulb,
 } from "lucide-react";
+import { SuggestFeatureDialog } from "@/components/suggest-feature-dialog";
 import { cn } from "@/lib/utils";
 
 /* ─── types ─────────────────────────────────────────────── */
@@ -196,6 +197,7 @@ export function Layout({ children }: LayoutProps) {
   const [location] = useLocation();
   const [mounted, setMounted] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [suggestOpen, setSuggestOpen] = useState(false);
 
   useEffect(() => { const t = setTimeout(() => setMounted(true), 50); return () => clearTimeout(t); }, []);
 
@@ -379,8 +381,48 @@ export function Layout({ children }: LayoutProps) {
             );
           })}
 
+          {/* Suggest a Feature button */}
+          <div className="pt-3 pb-1">
+            <button
+              onClick={() => setSuggestOpen(true)}
+              className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group"
+              style={{
+                opacity: mounted ? 1 : 0,
+                transform: mounted ? "translateX(0)" : "translateX(-10px)",
+                transition: "opacity 0.4s ease 0.28s, transform 0.4s ease 0.28s, background 0.2s, box-shadow 0.2s",
+                background: "hsl(38 80% 12%/0.5)",
+                border: "1px solid hsl(38 80% 40%/0.2)",
+                color: "#fbbf24",
+              }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLElement).style.background = "hsl(38 80% 16%/0.7)";
+                (e.currentTarget as HTMLElement).style.boxShadow = "0 0 12px hsl(38 100% 50%/0.2)";
+                (e.currentTarget as HTMLElement).style.borderColor = "hsl(38 80% 50%/0.35)";
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLElement).style.background = "hsl(38 80% 12%/0.5)";
+                (e.currentTarget as HTMLElement).style.boxShadow = "";
+                (e.currentTarget as HTMLElement).style.borderColor = "hsl(38 80% 40%/0.2)";
+              }}
+            >
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all duration-200 group-hover:scale-110"
+                style={{
+                  background: "linear-gradient(135deg, hsl(38 90% 30%/0.9), hsl(30 80% 26%/0.8))",
+                  border: "1px solid hsl(38 80% 50%/0.3)",
+                  boxShadow: "0 0 8px hsl(38 100% 50%/0.2)",
+                }}>
+                <Lightbulb className="w-3.5 h-3.5 text-amber-300" />
+              </div>
+              <span className="flex-1 text-left text-amber-300/90">Suggest a Feature</span>
+              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0"
+                style={{ background: "hsl(38 80% 30%/0.5)", color: "#fbbf24" }}>
+                NEW
+              </span>
+            </button>
+          </div>
+
           {/* Feature cards */}
-          <div className="pt-4 pb-1">
+          <div className="pt-2 pb-1">
             <p className="text-[10px] font-semibold text-muted-foreground/40 px-2 mb-2.5 tracking-[0.12em] uppercase">
               Features
             </p>
@@ -444,6 +486,8 @@ export function Layout({ children }: LayoutProps) {
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-background">
         {children}
       </main>
+
+      <SuggestFeatureDialog open={suggestOpen} onOpenChange={setSuggestOpen} />
     </div>
   );
 }
