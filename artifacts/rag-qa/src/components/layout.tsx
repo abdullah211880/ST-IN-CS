@@ -203,43 +203,57 @@ export function Layout({ children }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [suggestOpen, setSuggestOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
-  const { lang, toggleLang, t } = useLang();
+  const { lang, dir, toggleLang, t } = useLang();
+  const isRTL = lang === "ar";
 
   useEffect(() => { const tid = setTimeout(() => setMounted(true), 50); return () => clearTimeout(tid); }, []);
 
   return (
-    <div className="layout-root flex h-screen w-full bg-background overflow-hidden">
+    <div
+      className="layout-root flex h-screen w-full bg-background overflow-hidden"
+      dir={dir}
+    >
 
       {/* Persistent open-tab (visible only when sidebar is closed) */}
       <button
         onClick={() => setSidebarOpen(true)}
         aria-label="Open sidebar"
-        className="fixed left-0 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center justify-center gap-1 transition-all duration-300"
+        className="fixed top-1/2 -translate-y-1/2 z-50 flex flex-col items-center justify-center gap-1 transition-all duration-300"
         style={{
+          [isRTL ? "right" : "left"]: 0,
           width: 20,
           height: 72,
-          borderRadius: "0 10px 10px 0",
+          borderRadius: isRTL ? "10px 0 0 10px" : "0 10px 10px 0",
           background: "linear-gradient(180deg, var(--open-tab-from), var(--open-tab-to))",
-          border: "1px solid hsl(192 60% 40%/0.3)",
-          borderLeft: "none",
-          boxShadow: "4px 0 16px hsl(192 100% 48%/0.2)",
+          borderTop: "1px solid hsl(192 60% 40%/0.3)",
+          borderBottom: "1px solid hsl(192 60% 40%/0.3)",
+          [isRTL ? "borderLeft" : "borderRight"]: "1px solid hsl(192 60% 40%/0.3)",
+          [isRTL ? "borderRight" : "borderLeft"]: "none",
+          boxShadow: isRTL ? "-4px 0 16px hsl(192 100% 48%/0.2)" : "4px 0 16px hsl(192 100% 48%/0.2)",
           opacity: sidebarOpen ? 0 : 1,
           pointerEvents: sidebarOpen ? "none" : "auto",
-          transform: `translateY(-50%) translateX(${sidebarOpen ? "-100%" : "0"})`,
+          transform: `translateY(-50%) translateX(${sidebarOpen ? (isRTL ? "100%" : "-100%") : "0"})`,
         }}
       >
-        <ChevronRight className="w-3 h-3 text-cyan-600 dark:text-cyan-300" />
+        {isRTL
+          ? <ChevronLeft  className="w-3 h-3 text-cyan-600 dark:text-cyan-300" />
+          : <ChevronRight className="w-3 h-3 text-cyan-600 dark:text-cyan-300" />}
       </button>
 
       {/* Sidebar */}
       <aside
         className="flex-shrink-0 flex flex-col relative overflow-hidden"
         style={{
+          order: isRTL ? 2 : 0,
           width: sidebarOpen ? 256 : 0,
           minWidth: 0,
           transition: "width 0.3s cubic-bezier(0.4,0,0.2,1), background 0.3s ease",
           background: `linear-gradient(180deg, var(--sidebar-grad-from) 0%, var(--sidebar-grad-to) 100%)`,
-          borderRight: sidebarOpen ? `1px solid var(--sidebar-border-c)` : "none",
+          ...(sidebarOpen
+            ? isRTL
+              ? { borderLeft: `1px solid var(--sidebar-border-c)` }
+              : { borderRight: `1px solid var(--sidebar-border-c)` }
+            : {}),
         }}
       >
         {/* Animated background orbs */}
@@ -265,8 +279,9 @@ export function Layout({ children }: LayoutProps) {
         >
           <Link href="/" className="flex items-center flex-1 min-w-0 group transition-all duration-300">
             {/* Animated icon */}
-            <div className="w-8 h-8 rounded-lg mr-3 flex items-center justify-center shrink-0 transition-all duration-300 group-hover:scale-110"
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all duration-300 group-hover:scale-110"
               style={{
+                marginInlineEnd: "0.75rem",
                 background: "linear-gradient(135deg, hsl(192 100% 35%), hsl(210 90% 40%))",
                 boxShadow: "0 0 14px hsl(192 100% 48%/0.5)",
                 animation: "logo-pulse 3s ease-in-out infinite",
@@ -286,8 +301,9 @@ export function Layout({ children }: LayoutProps) {
           <button
             onClick={() => setSidebarOpen(false)}
             aria-label="Close sidebar"
-            className="ml-2 shrink-0 w-7 h-7 rounded-md flex items-center justify-center transition-all duration-200 hover:scale-110"
+            className="shrink-0 w-7 h-7 rounded-md flex items-center justify-center transition-all duration-200 hover:scale-110"
             style={{
+              marginInlineStart: "0.5rem",
               background: "hsl(228 50% 12%/0.8)",
               border: "1px solid hsl(192 40% 25%/0.25)",
             }}
@@ -300,7 +316,9 @@ export function Layout({ children }: LayoutProps) {
               (e.currentTarget as HTMLElement).style.boxShadow = "";
             }}
           >
-            <ChevronLeft className="w-3.5 h-3.5 text-muted-foreground/60" />
+            {isRTL
+              ? <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/60" />
+              : <ChevronLeft  className="w-3.5 h-3.5 text-muted-foreground/60" />}
           </button>
         </div>
 
@@ -345,11 +363,12 @@ export function Layout({ children }: LayoutProps) {
                   }
                 }}
               >
-                {/* Active left bar */}
+                {/* Active side bar indicator – left in LTR, right in RTL */}
                 {isActive && (
                   <span
-                    className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-full"
+                    className="absolute top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-full"
                     style={{
+                      [isRTL ? "right" : "left"]: 0,
                       background: `linear-gradient(180deg, hsl(${color} 100% 65%), hsl(${color} 80% 45%))`,
                       boxShadow: `0 0 8px hsl(${color} 100% 60%/0.7)`,
                     }}
@@ -358,13 +377,16 @@ export function Layout({ children }: LayoutProps) {
 
                 {/* Icon container */}
                 <div
-                  className="w-7 h-7 rounded-lg mr-3 flex items-center justify-center shrink-0 transition-all duration-200 group-hover:scale-110"
-                  style={isActive ? {
-                    background: `hsl(${color} 80% 50%/0.2)`,
-                    border: `1px solid hsl(${color} 80% 50%/0.3)`,
-                  } : {
-                    background: "hsl(228 40% 15%/0.6)",
-                    border: "1px solid hsl(228 40% 25%/0.4)",
+                  className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all duration-200 group-hover:scale-110"
+                  style={{
+                    marginInlineEnd: "0.75rem",
+                    ...(isActive ? {
+                      background: `hsl(${color} 80% 50%/0.2)`,
+                      border: `1px solid hsl(${color} 80% 50%/0.3)`,
+                    } : {
+                      background: "hsl(228 40% 15%/0.6)",
+                      border: "1px solid hsl(228 40% 25%/0.4)",
+                    }),
                   }}
                 >
                   <Icon
