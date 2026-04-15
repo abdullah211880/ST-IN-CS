@@ -7,16 +7,17 @@ import {
 } from "lucide-react";
 import { SuggestFeatureDialog } from "@/components/suggest-feature-dialog";
 import { useTheme } from "@/contexts/theme-context";
+import { useLang } from "@/contexts/language-context";
 import { cn } from "@/lib/utils";
 
 /* ─── types ─────────────────────────────────────────────── */
 interface LayoutProps { children: ReactNode; }
 interface ChatMessage { role: "user" | "assistant"; content: string; }
 
-const NAV = [
-  { name: "Documents", href: "/documents", icon: FileText,      color: "192" },
-  { name: "Sessions",  href: "/sessions",  icon: MessageSquare, color: "260" },
-  { name: "Goals",     href: "/goals",     icon: Target,        color: "142" },
+const NAV_CONFIG = [
+  { key: "navDocuments" as const, href: "/documents", icon: FileText,      color: "192" },
+  { key: "navSessions"  as const, href: "/sessions",  icon: MessageSquare, color: "260" },
+  { key: "navGoals"     as const, href: "/goals",     icon: Target,        color: "142" },
 ];
 
 /* ─── animated orb ──────────────────────────────────────── */
@@ -104,6 +105,7 @@ function AiAssistant() {
             {open ? "Ask about any feature" : "Click to get help"}
           </p>
         </div>
+        {/* ← AiAssistant has no access to t(), handled in Layout below via CSS classes */}
 
         <ChevronDown className={cn(
           "w-3.5 h-3.5 text-muted-foreground/50 transition-transform duration-300 shrink-0",
@@ -201,11 +203,12 @@ export function Layout({ children }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [suggestOpen, setSuggestOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
+  const { lang, toggleLang, t } = useLang();
 
-  useEffect(() => { const t = setTimeout(() => setMounted(true), 50); return () => clearTimeout(t); }, []);
+  useEffect(() => { const tid = setTimeout(() => setMounted(true), 50); return () => clearTimeout(tid); }, []);
 
   return (
-    <div className="flex h-screen w-full bg-background overflow-hidden">
+    <div className="layout-root flex h-screen w-full bg-background overflow-hidden">
 
       {/* Persistent open-tab (visible only when sidebar is closed) */}
       <button
@@ -304,14 +307,15 @@ export function Layout({ children }: LayoutProps) {
         {/* Navigation */}
         <nav className="relative z-10 flex-1 px-3 py-5 space-y-1 overflow-y-auto">
           <p className="text-[10px] font-semibold text-muted-foreground/40 px-2 mb-3 tracking-[0.12em] uppercase">
-            Navigation
+            {t("navLabel")}
           </p>
 
-          {NAV.map(({ name, href, icon: Icon, color }, idx) => {
+          {NAV_CONFIG.map(({ key, href, icon: Icon, color }, idx) => {
+            const name = t(key);
             const isActive = location === href || location.startsWith(href);
             return (
               <Link
-                key={name}
+                key={href}
                 href={href}
                 className={cn(
                   "relative flex items-center px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 group overflow-hidden",
@@ -418,10 +422,10 @@ export function Layout({ children }: LayoutProps) {
                 }}>
                 <Lightbulb className="w-3.5 h-3.5 text-amber-300" />
               </div>
-              <span className="flex-1 text-left text-amber-300/90">Suggest a Feature</span>
+              <span className="flex-1 text-left text-amber-300/90">{t("suggestBtn")}</span>
               <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0"
                 style={{ background: "hsl(38 80% 30%/0.5)", color: "#fbbf24" }}>
-                NEW
+                {t("newBadge")}
               </span>
             </button>
           </div>
@@ -429,18 +433,18 @@ export function Layout({ children }: LayoutProps) {
           {/* Feature cards */}
           <div className="pt-2 pb-1">
             <p className="text-[10px] font-semibold text-muted-foreground/40 px-2 mb-2.5 tracking-[0.12em] uppercase">
-              Features
+              {t("featuresLabel")}
             </p>
             <div className="space-y-1.5">
-              {[
-                { label: "Summarize",    desc: "≡ icon on each doc",  color: "#34d399" },
-                { label: "Question AI",  desc: "💡 icon on each doc", color: "#fbbf24" },
-                { label: "Mind Map",     desc: "⬡ icon on each doc",  color: "#22d3ee" },
-                { label: "Quiz / Exam",  desc: "🎓 icon on each doc", color: "#a78bfa" },
-                { label: "Text-to-Speech", desc: "🎧 icon on each doc", color: "#f87171" },
-              ].map((f, i) => (
+              {([
+                { labelKey: "featSummarize"  as const, descKey: "featSummarizeDesc"  as const, color: "#34d399" },
+                { labelKey: "featQuestionAI" as const, descKey: "featQuestionAIDesc" as const, color: "#fbbf24" },
+                { labelKey: "featMindMap"    as const, descKey: "featMindMapDesc"    as const, color: "#22d3ee" },
+                { labelKey: "featQuiz"       as const, descKey: "featQuizDesc"       as const, color: "#a78bfa" },
+                { labelKey: "featTTS"        as const, descKey: "featTTSDesc"        as const, color: "#f87171" },
+              ] as const).map((f, i) => (
                 <div
-                  key={f.label}
+                  key={f.labelKey}
                   className="flex items-center gap-2 px-2 py-1.5 rounded-lg"
                   style={{
                     background: "var(--feature-card-bg)",
@@ -452,8 +456,8 @@ export function Layout({ children }: LayoutProps) {
                 >
                   <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: f.color, boxShadow: `0 0 4px ${f.color}` }} />
                   <div className="min-w-0">
-                    <p className="text-[11px] font-medium text-foreground/80 leading-none">{f.label}</p>
-                    <p className="text-[9px] text-muted-foreground/50 mt-0.5">{f.desc}</p>
+                    <p className="text-[11px] font-medium text-foreground/80 leading-none">{t(f.labelKey)}</p>
+                    <p className="text-[9px] text-muted-foreground/50 mt-0.5">{t(f.descKey)}</p>
                   </div>
                 </div>
               ))}
@@ -478,13 +482,35 @@ export function Layout({ children }: LayoutProps) {
             AK
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium text-foreground leading-none">Analyst Mode</p>
+            <p className="text-xs font-medium text-foreground leading-none">{t("analystMode")}</p>
             <div className="flex items-center gap-1 mt-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"
                 style={{ animation: "pulse-dot 2.5s ease-in-out infinite" }} />
-              <span className="text-[10px] text-muted-foreground/50">Ready</span>
+              <span className="text-[10px] text-muted-foreground/50">{t("ready")}</span>
             </div>
           </div>
+
+          {/* Language toggle */}
+          <button
+            onClick={toggleLang}
+            aria-label={lang === "en" ? "Switch to Arabic" : "التبديل إلى الإنجليزية"}
+            title={lang === "en" ? "Switch to Arabic" : "التبديل إلى الإنجليزية"}
+            className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 text-[11px] font-bold"
+            style={{
+              background: lang === "ar"
+                ? "hsl(192 80% 18%/0.6)"
+                : "hsl(38 80% 20%/0.4)",
+              border: lang === "ar"
+                ? "1px solid hsl(192 80% 50%/0.25)"
+                : "1px solid hsl(38 80% 50%/0.25)",
+              color: lang === "ar" ? "#22d3ee" : "#fbbf24",
+              letterSpacing: "-0.02em",
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "scale(1.1)"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "scale(1)"; }}
+          >
+            {lang === "en" ? "AR" : "EN"}
+          </button>
 
           {/* Theme toggle */}
           <button

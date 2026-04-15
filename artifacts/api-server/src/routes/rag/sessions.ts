@@ -124,7 +124,7 @@ router.post("/sessions/:id/ask", async (req, res) => {
     return;
   }
 
-  const { question, documentIds } = req.body as { question: string; documentIds?: string[] };
+  const { question, documentIds, language } = req.body as { question: string; documentIds?: string[]; language?: string };
 
   if (!question) {
     res.status(400).json({ error: "Question is required" });
@@ -142,7 +142,7 @@ router.post("/sessions/:id/ask", async (req, res) => {
     agentTrace: [],
   }).returning();
 
-  const mcpResult = await processMCPQuery(question, docIds, req.log);
+  const mcpResult = await processMCPQuery(question, docIds, req.log, language);
 
   const [assistantMsg] = await db.insert(ragMessagesTable).values({
     id: randomUUID(),

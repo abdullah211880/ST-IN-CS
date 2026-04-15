@@ -1,0 +1,233 @@
+export const translations = {
+  en: {
+    /* ── App ── */
+    appName:              "RAG Engine",
+    appSubtitle:          "Document Intelligence",
+
+    /* ── Nav ── */
+    navLabel:             "NAVIGATION",
+    navDocuments:         "Documents",
+    navSessions:          "Sessions",
+    navGoals:             "Goals",
+
+    /* ── Sidebar feature cards ── */
+    featuresLabel:        "FEATURES",
+    featSummarize:        "Summarize",
+    featSummarizeDesc:    "≡ icon on each doc",
+    featQuestionAI:       "Question AI",
+    featQuestionAIDesc:   "💡 icon on each doc",
+    featMindMap:          "Mind Map",
+    featMindMapDesc:      "⬡ icon on each doc",
+    featQuiz:             "Quiz / Exam",
+    featQuizDesc:         "🎓 icon on each doc",
+    featTTS:              "Text-to-Speech",
+    featTTSDesc:          "🎧 icon on each doc",
+
+    /* ── Sidebar footer ── */
+    suggestBtn:           "Suggest a Feature",
+    aiAssistant:          "AI Assistant",
+    aiAssistantHelp:      "Click to get help",
+    analystMode:          "Analyst Mode",
+    ready:                "Ready",
+
+    /* ── AI Assistant chat ── */
+    assistantPlaceholder: "Ask me anything about your documents or analysis…",
+    assistantThinking:    "AI is thinking…",
+
+    /* ── Documents page ── */
+    docsPageTitle:        "Knowledge Base",
+    docsPageDesc:         "Manage documents, view extraction status, and explore indexed topics.",
+    docsUploadBtn:        "Upload Document",
+    docsTableTitle:       "Indexed Documents",
+    docsColFilename:      "Filename",
+    docsColStatus:        "Status",
+    docsColType:          "Type",
+    docsColChunks:        "Chunks",
+    docsColTopics:        "Extracted Topics",
+    docsColActions:       "Actions",
+    docsStatusReady:      "Ready",
+    docsStatusProcessing: "Processing",
+    docsStatusUploading:  "Uploading",
+    docsEmpty:            "No documents uploaded yet.",
+    docsDropzone:         "Drop a file here or click to browse",
+
+    /* ── Sessions page ── */
+    sessionsTitle:        "Analysis Sessions",
+    sessionsDesc:         "Ask questions, synthesize answers, and explore source materials.",
+    sessionsNewBtn:       "New Session",
+    sessionsDialogTitle:  "Create Analysis Session",
+    sessionsDialogDesc:   "Start a new context for asking questions. Optionally restrict search to specific documents.",
+    sessionsLabelTitle:   "Session Title",
+    sessionsLabelDocs:    "Restrict to Documents (Optional)",
+    sessionsNoDocs:       "No documents available.",
+    sessionsCancelBtn:    "Cancel",
+    sessionsStartBtn:     "Start Session",
+    sessionsCreating:     "Creating…",
+    sessionsEmpty:        "No sessions yet",
+    sessionsEmptyDesc:    "Create your first session to start asking questions.",
+    sessionsCreateBtn:    "Create Session",
+    sessionsExchanges:    "exchanges",
+    sessionsRestrictedTo: "Restricted to",
+    sessionsDocument:     "document",
+    sessionsDocuments:    "documents",
+
+    /* ── Session QA page ── */
+    qaBack:               "Back to sessions",
+    qaAgentTrace:         "Agent Intelligence Trace",
+    qaExecTrace:          "Execution Trace",
+    qaSourceEvidence:     "Source Evidence",
+    qaSources:            "Sources",
+    qaEmptyTitle:         "This session is empty.",
+    qaEmptyDesc:          "Ask a question to start analyzing your documents.",
+    qaTracePlaceholder:   "Submit a question to see the multi-agent routing, tool execution, and synthesis process.",
+    qaPlaceholder:        "Ask a question about your documents…",
+    qaPending:            "Agents are synthesizing answer",
+    qaAnswerLang:         "Answer language",
+    qaAnswerEnglish:      "English",
+    qaAnswerArabic:       "Arabic",
+    qaTopic:              "Topic",
+
+    /* ── Goals page ── */
+    goalsTitle:           "My Goals",
+    goalsDesc:            "Track your goals, daily tasks, and progress over time.",
+    goalsNewBtn:          "New Goal",
+    goalsEmpty:           "No goals yet",
+    goalsEmptyDesc:       "Every great achievement starts with a clear goal. Tell us what you want to accomplish and we'll create a personalised plan.",
+    goalsFirstBtn:        "Set Your First Goal",
+    goalsTodayTasks:      "Today's tasks",
+    goalsViewPlan:        "View plan & tasks",
+    goalsWeekPlan:        "week plan",
+    goalsTasksDone:       "tasks done total",
+
+    /* ── Common ── */
+    loading:              "Loading…",
+    delete:               "Delete",
+    cancel:               "Cancel",
+    confirm:              "Confirm",
+    back:                 "Back",
+    save:                 "Save",
+    close:                "Close",
+    newBadge:             "NEW",
+    statusActive:         "Active",
+    statusPaused:         "Paused",
+    statusCompleted:      "Completed",
+    statusAbandoned:      "Abandoned",
+  },
+
+  ar: {
+    /* ── App ── */
+    appName:              "محرك التحليل",
+    appSubtitle:          "الذكاء المستندي",
+
+    /* ── Nav ── */
+    navLabel:             "التنقل",
+    navDocuments:         "المستندات",
+    navSessions:          "الجلسات",
+    navGoals:             "الأهداف",
+
+    /* ── Sidebar feature cards ── */
+    featuresLabel:        "المميزات",
+    featSummarize:        "تلخيص",
+    featSummarizeDesc:    "أيقونة ≡ على كل مستند",
+    featQuestionAI:       "أسئلة ذكية",
+    featQuestionAIDesc:   "أيقونة 💡 على كل مستند",
+    featMindMap:          "خريطة ذهنية",
+    featMindMapDesc:      "أيقونة ⬡ على كل مستند",
+    featQuiz:             "اختبار",
+    featQuizDesc:         "أيقونة 🎓 على كل مستند",
+    featTTS:              "تحويل النص لصوت",
+    featTTSDesc:          "أيقونة 🎧 على كل مستند",
+
+    /* ── Sidebar footer ── */
+    suggestBtn:           "اقتراح ميزة",
+    aiAssistant:          "المساعد الذكي",
+    aiAssistantHelp:      "انقر للحصول على المساعدة",
+    analystMode:          "وضع المحلل",
+    ready:                "جاهز",
+
+    /* ── AI Assistant chat ── */
+    assistantPlaceholder: "اسألني عن مستنداتك أو تحليلاتك…",
+    assistantThinking:    "الذكاء الاصطناعي يفكر…",
+
+    /* ── Documents page ── */
+    docsPageTitle:        "قاعدة المعرفة",
+    docsPageDesc:         "إدارة المستندات وعرض حالة الاستخراج والموضوعات المفهرسة.",
+    docsUploadBtn:        "رفع مستند",
+    docsTableTitle:       "المستندات المفهرسة",
+    docsColFilename:      "اسم الملف",
+    docsColStatus:        "الحالة",
+    docsColType:          "النوع",
+    docsColChunks:        "الأجزاء",
+    docsColTopics:        "الموضوعات",
+    docsColActions:       "الإجراءات",
+    docsStatusReady:      "جاهز",
+    docsStatusProcessing: "معالجة",
+    docsStatusUploading:  "جاري الرفع",
+    docsEmpty:            "لا توجد مستندات بعد.",
+    docsDropzone:         "أسقط ملفاً هنا أو انقر للتصفح",
+
+    /* ── Sessions page ── */
+    sessionsTitle:        "جلسات التحليل",
+    sessionsDesc:         "اطرح أسئلة واستنبط الإجابات واستكشف المصادر.",
+    sessionsNewBtn:       "جلسة جديدة",
+    sessionsDialogTitle:  "إنشاء جلسة تحليل",
+    sessionsDialogDesc:   "ابدأ سياقاً جديداً لطرح الأسئلة. يمكنك تقييد البحث بمستندات محددة.",
+    sessionsLabelTitle:   "عنوان الجلسة",
+    sessionsLabelDocs:    "تقييد بالمستندات (اختياري)",
+    sessionsNoDocs:       "لا توجد مستندات متاحة.",
+    sessionsCancelBtn:    "إلغاء",
+    sessionsStartBtn:     "بدء الجلسة",
+    sessionsCreating:     "جاري الإنشاء…",
+    sessionsEmpty:        "لا توجد جلسات بعد",
+    sessionsEmptyDesc:    "أنشئ أول جلسة لبدء طرح الأسئلة.",
+    sessionsCreateBtn:    "إنشاء جلسة",
+    sessionsExchanges:    "محادثة",
+    sessionsRestrictedTo: "مقيد بـ",
+    sessionsDocument:     "مستند",
+    sessionsDocuments:    "مستندات",
+
+    /* ── Session QA page ── */
+    qaBack:               "العودة للجلسات",
+    qaAgentTrace:         "سجل عمليات الوكلاء",
+    qaExecTrace:          "تتبع التنفيذ",
+    qaSourceEvidence:     "أدلة المصادر",
+    qaSources:            "المصادر",
+    qaEmptyTitle:         "هذه الجلسة فارغة.",
+    qaEmptyDesc:          "اطرح سؤالاً لبدء تحليل مستنداتك.",
+    qaTracePlaceholder:   "أرسل سؤالاً لرؤية عمل الوكلاء والمعالجة.",
+    qaPlaceholder:        "اطرح سؤالاً عن مستنداتك…",
+    qaPending:            "الوكلاء يعالجون الإجابة",
+    qaAnswerLang:         "لغة الإجابة",
+    qaAnswerEnglish:      "إنجليزي",
+    qaAnswerArabic:       "عربي",
+    qaTopic:              "الموضوع",
+
+    /* ── Goals page ── */
+    goalsTitle:           "أهدافي",
+    goalsDesc:            "تتبع أهدافك ومهامك اليومية وتقدمك مع مرور الوقت.",
+    goalsNewBtn:          "هدف جديد",
+    goalsEmpty:           "لا توجد أهداف بعد",
+    goalsEmptyDesc:       "كل إنجاز عظيم يبدأ بهدف واضح. أخبرنا بما تريد تحقيقه وسنبني لك خطة مخصصة.",
+    goalsFirstBtn:        "أضف هدفك الأول",
+    goalsTodayTasks:      "مهام اليوم",
+    goalsViewPlan:        "عرض الخطة والمهام",
+    goalsWeekPlan:        "خطة أسبوعية",
+    goalsTasksDone:       "مهمة منجزة",
+
+    /* ── Common ── */
+    loading:              "جاري التحميل…",
+    delete:               "حذف",
+    cancel:               "إلغاء",
+    confirm:              "تأكيد",
+    back:                 "رجوع",
+    save:                 "حفظ",
+    close:                "إغلاق",
+    newBadge:             "جديد",
+    statusActive:         "نشط",
+    statusPaused:         "متوقف",
+    statusCompleted:      "مكتمل",
+    statusAbandoned:      "متروك",
+  },
+} as const;
+
+export type TranslationKey = keyof typeof translations.en;

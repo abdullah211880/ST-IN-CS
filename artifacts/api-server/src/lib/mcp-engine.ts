@@ -239,6 +239,7 @@ async function runRetrievalAgent(
 async function runAnswerSynthesisAgent(
   question: string,
   chunks: Array<{ content: string; filename: string; topic: string | null }>,
+  language = "en",
 ): Promise<{ answer: string; trace: AgentStep }> {
   const start = Date.now();
 
@@ -258,7 +259,13 @@ async function runAnswerSynthesisAgent(
     .map((c, i) => `[Source ${i + 1}] (${c.filename}${c.topic ? ` — ${c.topic}` : ""})\n${c.content}`)
     .join("\n\n---\n\n");
 
+  const langInstruction = language === "ar"
+    ? "IMPORTANT: You MUST respond entirely in Arabic (العربية). All text in your answer must be in Arabic, including source citations."
+    : "Respond in English.";
+
   const prompt = `You are an expert document analyst using a Model Context Protocol (MCP) based RAG system. Answer the user's question based ONLY on the provided document excerpts. Be precise, cite sources by number [Source N], and explain your reasoning clearly.
+
+${langInstruction}
 
 Document Excerpts:
 ${context}
@@ -290,6 +297,7 @@ export async function processMCPQuery(
   question: string,
   documentIds: string[],
   log: Logger,
+  language = "en",
 ): Promise<MCPResult> {
   const totalStart = Date.now();
   const agentTrace: AgentStep[] = [];
@@ -299,7 +307,7 @@ export async function processMCPQuery(
   const { chunks, trace: retrievalTrace } = await runRetrievalAgent(question, documentIds, log);
   agentTrace.push(retrievalTrace);
 
-  const { answer, trace: synthesisTrace } = await runAnswerSynthesisAgent(question, chunks);
+  const { answer, trace: synthesisTrace } = await runAnswerSynthesisAgent(question, chunks, language);
   agentTrace.push(synthesisTrace);
 
   const sources: SourceCitation[] = chunks.map(c => ({
