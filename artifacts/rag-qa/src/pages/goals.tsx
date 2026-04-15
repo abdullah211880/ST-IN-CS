@@ -9,8 +9,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { GoalCreateDialog } from "@/components/goal-create-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { useLang } from "@/contexts/language-context";
 
-/* ── category meta ─────────────────────────────────────── */
 const CAT_META: Record<string, { color: string; icon: React.ElementType }> = {
   "Health":           { color: "#34d399", icon: HeartPulse },
   "Career":           { color: "#60a5fa", icon: Flame },
@@ -25,9 +25,6 @@ function catMeta(cat: string) {
   return CAT_META[cat] ?? { color: "#22d3ee", icon: Sparkles };
 }
 
-const STATUS_LABEL: Record<string, string> = {
-  active: "Active", paused: "Paused", completed: "Completed", abandoned: "Abandoned",
-};
 const STATUS_COLOR: Record<string, string> = {
   active: "#22d3ee", paused: "#fbbf24", completed: "#34d399", abandoned: "#f87171",
 };
@@ -43,6 +40,15 @@ export default function Goals() {
   const [createOpen, setCreateOpen] = useState(false);
   const { toast } = useToast();
   const qc = useQueryClient();
+  const { t, dir } = useLang();
+
+  const statusLabel = (s: string) => {
+    const map: Record<string, "goalsStatusActive" | "goalsStatusPaused" | "goalsStatusCompleted" | "goalsStatusAbandoned"> = {
+      active: "goalsStatusActive", paused: "goalsStatusPaused",
+      completed: "goalsStatusCompleted", abandoned: "goalsStatusAbandoned",
+    };
+    return t(map[s] ?? "goalsStatusActive");
+  };
 
   const { data: goals = [], isLoading, error } = useQuery<GoalSummary[]>({
     queryKey: ["goals"],
@@ -50,27 +56,25 @@ export default function Goals() {
   });
 
   const deleteGoal = async (id: string, title: string) => {
-    if (!confirm(`Delete goal "${title}"? This cannot be undone.`)) return;
+    if (!confirm(`${t("goalsDeleteConfirm")} "${title}"${t("goalsDeleteSuffix")}`)) return;
     const res = await fetch(`/api/goals/${id}`, { method: "DELETE" });
-    if (res.ok) { qc.invalidateQueries({ queryKey: ["goals"] }); toast({ title: "Goal deleted" }); }
+    if (res.ok) { qc.invalidateQueries({ queryKey: ["goals"] }); toast({ title: t("delete") }); }
   };
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden">
+    <div className="flex-1 flex flex-col overflow-hidden" dir={dir}>
       {/* Header */}
       <div className="shrink-0 px-8 py-6 flex items-center justify-between"
         style={{ borderBottom: "1px solid hsl(var(--border)/0.5)" }}>
         <div>
           <h1 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-violet-400 bg-clip-text text-transparent">
-            My Goals
+            {t("goalsTitle")}
           </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Track your goals, daily tasks, and progress over time.
-          </p>
+          <p className="text-sm text-muted-foreground mt-0.5">{t("goalsDesc")}</p>
         </div>
         <Button onClick={() => setCreateOpen(true)} className="gap-2"
           style={{ background: "linear-gradient(135deg, hsl(192 70% 32%), hsl(210 70% 36%))", border: "none" }}>
-          <Plus className="w-4 h-4" /> New Goal
+          <Plus className="w-4 h-4" /> {t("goalsNewBtn")}
         </Button>
       </div>
 
@@ -79,13 +83,13 @@ export default function Goals() {
         {isLoading && (
           <div className="flex items-center justify-center h-48 gap-3 text-muted-foreground">
             <Loader2 className="w-5 h-5 animate-spin text-cyan-400/60" />
-            <span className="text-sm">Loading your goals…</span>
+            <span className="text-sm">{t("goalsLoading")}</span>
           </div>
         )}
 
         {error && (
           <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-xl px-4 py-3">
-            <AlertCircle className="w-4 h-4 shrink-0" /> Failed to load goals.
+            <AlertCircle className="w-4 h-4 shrink-0" /> {t("goalsError")}
           </div>
         )}
 
@@ -96,14 +100,12 @@ export default function Goals() {
               <Target className="w-10 h-10 text-cyan-400" />
             </div>
             <div className="text-center">
-              <p className="font-semibold text-foreground text-lg">No goals yet</p>
-              <p className="text-sm text-muted-foreground mt-1.5 max-w-sm">
-                Every great achievement starts with a clear goal. Tell us what you want to accomplish and we'll create a personalised plan.
-              </p>
+              <p className="font-semibold text-foreground text-lg">{t("goalsEmpty")}</p>
+              <p className="text-sm text-muted-foreground mt-1.5 max-w-sm">{t("goalsEmptyDesc")}</p>
             </div>
             <Button onClick={() => setCreateOpen(true)} size="lg" className="gap-2"
               style={{ background: "linear-gradient(135deg, hsl(192 70% 32%), hsl(260 60% 40%))", border: "none" }}>
-              <Plus className="w-4 h-4" /> Set Your First Goal
+              <Plus className="w-4 h-4" /> {t("goalsFirstBtn")}
             </Button>
           </div>
         )}
@@ -121,16 +123,10 @@ export default function Goals() {
 
               return (
                 <div key={goal.id} className="group rounded-2xl border flex flex-col overflow-hidden transition-all duration-200 hover:shadow-lg"
-                  style={{
-                    background: "hsl(var(--card))",
-                    borderColor: `${meta.color}22`,
-                    boxShadow: `0 0 0 1px ${meta.color}10`,
-                  }}>
-                  {/* Card top accent */}
+                  style={{ background: "hsl(var(--card))", borderColor: `${meta.color}22`, boxShadow: `0 0 0 1px ${meta.color}10` }}>
                   <div className="h-1 w-full" style={{ background: `linear-gradient(90deg, ${meta.color}, ${meta.color}44)` }} />
 
                   <div className="p-5 flex-1 flex flex-col gap-3">
-                    {/* Header row */}
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center gap-2.5">
                         <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
@@ -141,7 +137,7 @@ export default function Goals() {
                           <p className="text-[11px] font-medium" style={{ color: meta.color }}>{goal.category}</p>
                           <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
                             style={{ background: `${STATUS_COLOR[goal.status]}20`, color: STATUS_COLOR[goal.status] }}>
-                            {STATUS_LABEL[goal.status] ?? goal.status}
+                            {statusLabel(goal.status)}
                           </span>
                         </div>
                       </div>
@@ -151,13 +147,11 @@ export default function Goals() {
                       </button>
                     </div>
 
-                    {/* Title */}
                     <h3 className="text-sm font-semibold text-foreground leading-snug line-clamp-2">{goal.title}</h3>
 
-                    {/* Step progress */}
                     <div>
                       <div className="flex justify-between text-[10px] text-muted-foreground/60 mb-1.5">
-                        <span>Steps: {completedSteps}/{totalSteps}</span>
+                        <span>{t("goalsSteps")}: {completedSteps}/{totalSteps}</span>
                         <span>{progress}%</span>
                       </div>
                       <div className="h-1.5 rounded-full bg-muted overflow-hidden">
@@ -166,11 +160,10 @@ export default function Goals() {
                       </div>
                     </div>
 
-                    {/* Today's tasks */}
                     {goal.todayTasks > 0 && (
                       <div className="flex items-center justify-between text-xs rounded-lg px-3 py-2"
                         style={{ background: `${meta.color}0c`, border: `1px solid ${meta.color}18` }}>
-                        <span className="text-muted-foreground">Today's tasks</span>
+                        <span className="text-muted-foreground">{t("goalsTodayTasks")}</span>
                         <div className="flex items-center gap-1.5">
                           <span className="font-semibold" style={{ color: meta.color }}>
                             {goal.completedToday}/{goal.todayTasks}
@@ -180,17 +173,15 @@ export default function Goals() {
                       </div>
                     )}
 
-                    {/* Weeks */}
                     <p className="text-[10px] text-muted-foreground/40">
-                      {goal.targetWeeks} week plan · {goal.totalCompleted} tasks done total
+                      {goal.targetWeeks} {t("goalsWeekPlan")} · {goal.totalCompleted} {t("goalsTasksDone")}
                     </p>
                   </div>
 
-                  {/* CTA */}
                   <Link href={`/goals/${goal.id}`}
                     className="flex items-center justify-between px-5 py-3 text-xs font-medium transition-all"
                     style={{ borderTop: `1px solid ${meta.color}14`, color: meta.color }}>
-                    <span>View plan &amp; tasks</span>
+                    <span>{t("goalsViewPlan")}</span>
                     <ChevronRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>

@@ -490,61 +490,57 @@ export function Layout({ children }: LayoutProps) {
             </div>
           </div>
 
-          {/* Language toggle */}
-          <button
-            onClick={toggleLang}
-            aria-label={lang === "en" ? "Switch to Arabic" : "التبديل إلى الإنجليزية"}
-            title={lang === "en" ? "Switch to Arabic" : "التبديل إلى الإنجليزية"}
-            className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 text-[11px] font-bold"
-            style={{
-              background: lang === "ar"
-                ? "hsl(192 80% 18%/0.6)"
-                : "hsl(38 80% 20%/0.4)",
-              border: lang === "ar"
-                ? "1px solid hsl(192 80% 50%/0.25)"
-                : "1px solid hsl(38 80% 50%/0.25)",
-              color: lang === "ar" ? "#22d3ee" : "#fbbf24",
-              letterSpacing: "-0.02em",
-            }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "scale(1.1)"; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "scale(1)"; }}
-          >
-            {lang === "en" ? "AR" : "EN"}
-          </button>
+        </div>
+      </aside>
+
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-background">
+        {/* ── Global top bar ── */}
+        <div
+          className="shrink-0 h-11 flex items-center justify-end px-5 gap-2"
+          style={{ borderBottom: "1px solid var(--sidebar-divider)" }}
+        >
+          {/* Language pill */}
+          <div className="flex items-center gap-1 rounded-full px-1 py-1"
+            style={{ background: "hsl(var(--muted)/0.6)", border: "1px solid hsl(var(--border)/0.8)" }}>
+            {(["en", "ar"] as const).map(l => (
+              <button
+                key={l}
+                onClick={() => { if (l !== lang) toggleLang(); }}
+                className="text-[11px] font-bold px-3 py-0.5 rounded-full transition-all duration-200"
+                style={{
+                  background: lang === l
+                    ? l === "ar"
+                      ? "linear-gradient(135deg, hsl(192 70% 30%), hsl(210 70% 35%))"
+                      : "linear-gradient(135deg, hsl(260 60% 35%), hsl(280 60% 40%))"
+                    : "transparent",
+                  color: lang === l ? "#fff" : "hsl(var(--muted-foreground))",
+                  boxShadow: lang === l ? "0 1px 6px rgba(0,0,0,0.25)" : "none",
+                }}
+              >
+                {l === "en" ? "English" : "العربية"}
+              </button>
+            ))}
+          </div>
 
           {/* Theme toggle */}
           <button
             onClick={toggleTheme}
             aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
             title={theme === "dark" ? "Light mode" : "Dark mode"}
-            className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 group"
+            className="w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200"
             style={{
-              background: theme === "dark"
-                ? "hsl(50 80% 20%/0.5)"
-                : "hsl(222 60% 20%/0.12)",
-              border: theme === "dark"
-                ? "1px solid hsl(50 80% 50%/0.25)"
-                : "1px solid hsl(222 60% 50%/0.2)",
+              background: theme === "dark" ? "hsl(50 80% 20%/0.5)" : "hsl(222 60% 20%/0.12)",
+              border: theme === "dark" ? "1px solid hsl(50 80% 50%/0.25)" : "1px solid hsl(222 60% 50%/0.2)",
             }}
-            onMouseEnter={e => {
-              (e.currentTarget as HTMLElement).style.transform = "scale(1.1)";
-              (e.currentTarget as HTMLElement).style.boxShadow = theme === "dark"
-                ? "0 0 10px hsl(50 100% 50%/0.25)"
-                : "0 0 10px hsl(222 80% 60%/0.2)";
-            }}
-            onMouseLeave={e => {
-              (e.currentTarget as HTMLElement).style.transform = "scale(1)";
-              (e.currentTarget as HTMLElement).style.boxShadow = "";
-            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "scale(1.12)"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "scale(1)"; }}
           >
             {theme === "dark"
               ? <Sun  className="w-3.5 h-3.5" style={{ color: "#fbbf24" }} />
               : <Moon className="w-3.5 h-3.5" style={{ color: "#6366f1" }} />}
           </button>
         </div>
-      </aside>
 
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-background">
         {children}
       </main>
 

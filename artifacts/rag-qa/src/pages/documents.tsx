@@ -16,10 +16,12 @@ import { SuggestedQuestionsDialog } from "@/components/suggested-questions";
 import { SummaryDialog } from "@/components/summary-dialog";
 import { QuizDialog } from "@/components/quiz-dialog";
 import { MindMapDialog } from "@/components/mindmap-dialog";
+import { useLang } from "@/contexts/language-context";
 
 export default function Documents() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { t, lang, dir } = useLang();
   const { data: documents, isLoading } = useListDocuments({
     query: { queryKey: getListDocumentsQueryKey() }
   });
@@ -40,29 +42,24 @@ export default function Documents() {
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file) return;
-
     try {
       await uploadDoc.mutateAsync({
-        data: {
-          file,
-          filename: file.name,
-          documentType: documentType as any,
-        }
+        data: { file, filename: file.name, documentType: documentType as any }
       });
-      toast({ title: "Document uploaded", description: "Your document is now processing." });
+      toast({ title: t("docsUploadBtn"), description: t("docsPageDesc") });
       setIsUploadOpen(false);
       setFile(null);
       queryClient.invalidateQueries({ queryKey: getListDocumentsQueryKey() });
     } catch {
-      toast({ title: "Upload failed", description: "There was an error uploading your document.", variant: "destructive" });
+      toast({ title: "Upload failed", variant: "destructive" });
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this document?")) return;
+    if (!confirm(t("docsDeleteConfirm"))) return;
     try {
       await deleteDoc.mutateAsync({ id });
-      toast({ title: "Document deleted" });
+      toast({ title: t("delete") });
       queryClient.invalidateQueries({ queryKey: getListDocumentsQueryKey() });
     } catch {
       toast({ title: "Delete failed", variant: "destructive" });
@@ -70,32 +67,30 @@ export default function Documents() {
   };
 
   return (
-    <div className="flex-1 overflow-y-auto p-8">
+    <div className="flex-1 overflow-y-auto p-8" dir={dir}>
       <div className="max-w-6xl mx-auto space-y-8">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground">Knowledge Base</h1>
-            <p className="text-muted-foreground mt-1">Manage documents, view extraction status, and explore indexed topics.</p>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">{t("docsPageTitle")}</h1>
+            <p className="text-muted-foreground mt-1">{t("docsPageDesc")}</p>
           </div>
 
           <Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>
             <DialogTrigger asChild>
               <Button>
-                <UploadCloud className="w-4 h-4 mr-2" />
-                Upload Document
+                <UploadCloud className="w-4 h-4 me-2" />
+                {t("docsUploadBtn")}
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[425px]" dir={dir}>
               <DialogHeader>
-                <DialogTitle>Upload Document</DialogTitle>
-                <DialogDescription>
-                  Add a new document to your knowledge base for the RAG agents to index.
-                </DialogDescription>
+                <DialogTitle>{t("docsUploadDialogTitle")}</DialogTitle>
+                <DialogDescription>{t("docsUploadDialogDesc")}</DialogDescription>
               </DialogHeader>
               <form onSubmit={handleUpload}>
                 <div className="grid gap-4 py-4">
                   <div className="grid gap-2">
-                    <Label htmlFor="file">File</Label>
+                    <Label htmlFor="file">{t("docsFileLabel")}</Label>
                     <Input
                       id="file"
                       type="file"
@@ -103,27 +98,27 @@ export default function Documents() {
                       onChange={(e) => setFile(e.target.files?.[0] || null)}
                       required
                     />
-                    <p className="text-xs text-muted-foreground">Supported: TXT, Markdown, PDF (up to 50 MB)</p>
+                    <p className="text-xs text-muted-foreground">{t("docsFileHint")}</p>
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="type">Document Type</Label>
+                    <Label htmlFor="type">{t("docsTypeLabel")}</Label>
                     <Select value={documentType} onValueChange={setDocumentType}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select type" />
+                        <SelectValue placeholder={t("docsTypeLabel")} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="text">Text / Markdown</SelectItem>
-                        <SelectItem value="pdf">PDF</SelectItem>
-                        <SelectItem value="table">Tabular Data (CSV/Excel)</SelectItem>
-                        <SelectItem value="image">Image (OCR)</SelectItem>
+                        <SelectItem value="text">{t("docsTypeText")}</SelectItem>
+                        <SelectItem value="pdf">{t("docsTypePdf")}</SelectItem>
+                        <SelectItem value="table">{t("docsTypeTable")}</SelectItem>
+                        <SelectItem value="image">{t("docsTypeImage")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button type="button" variant="outline" onClick={() => setIsUploadOpen(false)}>Cancel</Button>
+                  <Button type="button" variant="outline" onClick={() => setIsUploadOpen(false)}>{t("cancel")}</Button>
                   <Button type="submit" disabled={!file || uploadDoc.isPending}>
-                    {uploadDoc.isPending ? "Uploading..." : "Upload & Index"}
+                    {uploadDoc.isPending ? t("docsUploading") : t("docsUploadIndex")}
                   </Button>
                 </DialogFooter>
               </form>
@@ -133,7 +128,7 @@ export default function Documents() {
 
         <Card className="glow-card bg-card/60 backdrop-blur-sm">
           <CardHeader>
-            <CardTitle>Indexed Documents</CardTitle>
+            <CardTitle>{t("docsTableTitle")}</CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -143,51 +138,51 @@ export default function Documents() {
             ) : !documents?.length ? (
               <div className="text-center py-12 border border-dashed rounded-lg">
                 <FileText className="w-12 h-12 text-muted-foreground/50 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-foreground">No documents found</h3>
-                <p className="text-sm text-muted-foreground mt-1">Upload a document to start building your knowledge base.</p>
+                <h3 className="text-lg font-medium text-foreground">{t("docsNoDocsTitle")}</h3>
+                <p className="text-sm text-muted-foreground mt-1">{t("docsNoDocsDesc")}</p>
               </div>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Filename</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Chunks</TableHead>
-                    <TableHead>Extracted Topics</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>{t("docsColFilename")}</TableHead>
+                    <TableHead>{t("docsColStatus")}</TableHead>
+                    <TableHead>{t("docsColType")}</TableHead>
+                    <TableHead>{t("docsColChunks")}</TableHead>
+                    <TableHead>{t("docsColTopics")}</TableHead>
+                    <TableHead className={lang === "ar" ? "text-left" : "text-right"}>{t("docsColActions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {documents.map((doc) => (
                     <TableRow key={doc.id}>
                       <TableCell className="font-medium">
-                        <div className="flex items-center">
-                          <FileText className="w-4 h-4 mr-2 text-muted-foreground" />
+                        <div className="flex items-center gap-2">
+                          <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
                           {doc.filename}
                         </div>
                       </TableCell>
                       <TableCell>
                         {doc.status === "ready" && (
                           <Badge variant="default" className="bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 border-emerald-500/20">
-                            <CheckCircle2 className="w-3 h-3 mr-1" /> Ready
+                            <CheckCircle2 className="w-3 h-3 me-1" /> {t("docsStatusReady")}
                           </Badge>
                         )}
                         {doc.status === "processing" && (
                           <Badge variant="secondary" className="text-amber-600 bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/20">
-                            <Loader2 className="w-3 h-3 mr-1 animate-spin" /> Processing
+                            <Loader2 className="w-3 h-3 me-1 animate-spin" /> {t("docsStatusProcessing")}
                           </Badge>
                         )}
                         {doc.status === "error" && (
                           <Badge variant="destructive">
-                            <AlertCircle className="w-3 h-3 mr-1" /> Error
+                            <AlertCircle className="w-3 h-3 me-1" /> Error
                           </Badge>
                         )}
                       </TableCell>
                       <TableCell className="capitalize">{doc.documentType}</TableCell>
                       <TableCell>
-                        <div className="flex items-center text-muted-foreground">
-                          <Database className="w-3 h-3 mr-1" />
+                        <div className="flex items-center gap-1 text-muted-foreground">
+                          <Database className="w-3 h-3" />
                           {doc.chunkCount || 0}
                         </div>
                       </TableCell>
@@ -201,64 +196,41 @@ export default function Documents() {
                           )}
                         </div>
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className={lang === "ar" ? "text-left" : "text-right"}>
                         <div className="flex items-center justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            title="Summarize document"
+                          <Button variant="ghost" size="icon" title={t("docsBtnSummarize")}
                             disabled={doc.status !== "ready"}
                             onClick={() => setSummaryDoc({ id: doc.id, filename: doc.filename })}
-                            className="text-emerald-400 hover:text-emerald-300 hover:bg-emerald-400/10 disabled:opacity-30"
-                          >
+                            className="text-emerald-400 hover:text-emerald-300 hover:bg-emerald-400/10 disabled:opacity-30">
                             <AlignLeft className="w-4 h-4" />
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            title="Suggest questions"
+                          <Button variant="ghost" size="icon" title={t("docsBtnQuestions")}
                             disabled={doc.status !== "ready"}
                             onClick={() => setQuestionsDoc({ id: doc.id, filename: doc.filename })}
-                            className="text-amber-400 hover:text-amber-300 hover:bg-amber-400/10 disabled:opacity-30"
-                          >
+                            className="text-amber-400 hover:text-amber-300 hover:bg-amber-400/10 disabled:opacity-30">
                             <Lightbulb className="w-4 h-4" />
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            title="Generate mind map"
+                          <Button variant="ghost" size="icon" title={t("docsBtnMindMap")}
                             disabled={doc.status !== "ready"}
                             onClick={() => setMindmapDoc({ id: doc.id, filename: doc.filename })}
-                            className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-400/10 disabled:opacity-30"
-                          >
+                            className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-400/10 disabled:opacity-30">
                             <Network className="w-4 h-4" />
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            title="Generate quiz / exam"
+                          <Button variant="ghost" size="icon" title={t("docsBtnQuiz")}
                             disabled={doc.status !== "ready"}
                             onClick={() => setQuizDoc({ id: doc.id, filename: doc.filename })}
-                            className="text-violet-400 hover:text-violet-300 hover:bg-violet-400/10 disabled:opacity-30"
-                          >
+                            className="text-violet-400 hover:text-violet-300 hover:bg-violet-400/10 disabled:opacity-30">
                             <GraduationCap className="w-4 h-4" />
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            title="Listen to document"
+                          <Button variant="ghost" size="icon" title={t("docsBtnTTS")}
                             disabled={doc.status !== "ready"}
                             onClick={() => setTtsDoc({ id: doc.id, filename: doc.filename })}
-                            className="text-cyan-500 hover:text-cyan-400 hover:bg-cyan-500/10 disabled:opacity-30"
-                          >
+                            className="text-cyan-500 hover:text-cyan-400 hover:bg-cyan-500/10 disabled:opacity-30">
                             <Headphones className="w-4 h-4" />
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
+                          <Button variant="ghost" size="icon"
                             onClick={() => handleDelete(doc.id)}
-                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                          >
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10">
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
@@ -273,48 +245,24 @@ export default function Documents() {
       </div>
 
       {ttsDoc && (
-        <TtsPlayerDialog
-          open={!!ttsDoc}
-          onOpenChange={(open) => { if (!open) setTtsDoc(null); }}
-          documentId={ttsDoc.id}
-          filename={ttsDoc.filename}
-        />
+        <TtsPlayerDialog open={!!ttsDoc} onOpenChange={(open) => { if (!open) setTtsDoc(null); }}
+          documentId={ttsDoc.id} filename={ttsDoc.filename} />
       )}
-
       {questionsDoc && (
-        <SuggestedQuestionsDialog
-          open={!!questionsDoc}
-          onOpenChange={(open) => { if (!open) setQuestionsDoc(null); }}
-          documentId={questionsDoc.id}
-          filename={questionsDoc.filename}
-        />
+        <SuggestedQuestionsDialog open={!!questionsDoc} onOpenChange={(open) => { if (!open) setQuestionsDoc(null); }}
+          documentId={questionsDoc.id} filename={questionsDoc.filename} />
       )}
-
       {summaryDoc && (
-        <SummaryDialog
-          open={!!summaryDoc}
-          onOpenChange={(open) => { if (!open) setSummaryDoc(null); }}
-          documentId={summaryDoc.id}
-          filename={summaryDoc.filename}
-        />
+        <SummaryDialog open={!!summaryDoc} onOpenChange={(open) => { if (!open) setSummaryDoc(null); }}
+          documentId={summaryDoc.id} filename={summaryDoc.filename} />
       )}
-
       {quizDoc && (
-        <QuizDialog
-          open={!!quizDoc}
-          onOpenChange={(open) => { if (!open) setQuizDoc(null); }}
-          documentId={quizDoc.id}
-          filename={quizDoc.filename}
-        />
+        <QuizDialog open={!!quizDoc} onOpenChange={(open) => { if (!open) setQuizDoc(null); }}
+          documentId={quizDoc.id} filename={quizDoc.filename} />
       )}
-
       {mindmapDoc && (
-        <MindMapDialog
-          open={!!mindmapDoc}
-          onOpenChange={(open) => { if (!open) setMindmapDoc(null); }}
-          documentId={mindmapDoc.id}
-          filename={mindmapDoc.filename}
-        />
+        <MindMapDialog open={!!mindmapDoc} onOpenChange={(open) => { if (!open) setMindmapDoc(null); }}
+          documentId={mindmapDoc.id} filename={mindmapDoc.filename} />
       )}
     </div>
   );
