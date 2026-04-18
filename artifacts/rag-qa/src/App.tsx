@@ -15,6 +15,7 @@ import GoalDetail from "@/pages/goal-detail";
 import BugFinder from "@/pages/bug-finder";
 import PasswordChecker from "@/pages/password-checker";
 import ScamChecker from "@/pages/scam-checker";
+import GpaCalculator from "@/pages/gpa-calculator";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient({
@@ -42,6 +43,7 @@ function Router() {
             <Route path="/bug-finder" component={BugFinder} />
             <Route path="/password-checker" component={PasswordChecker} />
             <Route path="/scam-checker" component={ScamChecker} />
+            <Route path="/gpa-calculator" component={GpaCalculator} />
             <Route component={NotFound} />
           </Switch>
         </Layout>
