@@ -13,6 +13,7 @@ import SessionQA from "@/pages/session-qa";
 import Goals from "@/pages/goals";
 import GoalDetail from "@/pages/goal-detail";
 import BugFinder from "@/pages/bug-finder";
+import PasswordChecker from "@/pages/password-checker";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient({
@@ -38,6 +39,7 @@ function Router() {
             <Route path="/goals/:id" component={GoalDetail} />
             <Route path="/goals" component={Goals} />
             <Route path="/bug-finder" component={BugFinder} />
+            <Route path="/password-checker" component={PasswordChecker} />
             <Route component={NotFound} />
           </Switch>
         </Layout>

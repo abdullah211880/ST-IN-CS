@@ -3,7 +3,7 @@ import { Link, useLocation } from "wouter";
 import {
   Database, FileText, MessageSquare, Home,
   Bot, Send, X, Loader2, ChevronDown, Sparkles,
-  ChevronLeft, ChevronRight, Lightbulb, Sun, Moon, Target, Bug,
+  ChevronLeft, ChevronRight, Lightbulb, Sun, Moon, Target, Bug, ShieldCheck,
 } from "lucide-react";
 import { SuggestFeatureDialog } from "@/components/suggest-feature-dialog";
 import { useTheme } from "@/contexts/theme-context";
@@ -18,7 +18,8 @@ const NAV_CONFIG = [
   { key: "navDocuments" as const, href: "/documents",  icon: FileText,      color: "192" },
   { key: "navSessions"  as const, href: "/sessions",   icon: MessageSquare, color: "260" },
   { key: "navGoals"     as const, href: "/goals",      icon: Target,        color: "142" },
-  { key: "navBugFinder" as const, href: "/bug-finder", icon: Bug,           color: "22"  },
+  { key: "navBugFinder"       as const, href: "/bug-finder",        icon: Bug,          color: "22"  },
+  { key: "navPasswordChecker" as const, href: "/password-checker",  icon: ShieldCheck,  color: "270" },
 ];
 
 /* ─── animated orb ──────────────────────────────────────── */
