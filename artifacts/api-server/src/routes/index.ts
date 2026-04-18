@@ -11,6 +11,7 @@ import { quizRouter } from "./rag/quiz.js";
 import { mindmapRouter } from "./rag/mindmap.js";
 import { suggestionsRouter } from "./rag/suggestions.js";
 import { goalsRouter } from "./rag/goals.js";
+import { bugfinderRouter } from "./rag/bugfinder.js";
 
 const router: IRouter = Router();
 
@@ -26,5 +27,6 @@ router.use(quizRouter);
 router.use(mindmapRouter);
 router.use(suggestionsRouter);
 router.use(goalsRouter);
+router.use(bugfinderRouter);
 
 export default router;
