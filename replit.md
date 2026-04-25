@@ -55,6 +55,16 @@ The core orchestration engine implementing the Model Context Protocol pattern:
 - `pnpm --filter @workspace/api-server run dev` — run API server locally
 - `pnpm --filter @workspace/rag-qa run dev` — run frontend locally
 
+## Authentication
+- **Clerk Auth** (v6) integrated for full sign-in / sign-up gate
+- Google OAuth ("Continue with Google") + email one-time-code supported
+- All app routes (`/overview`, `/documents`, `/sessions`, etc.) are protected — unauthenticated users are redirected to `/sign-in`
+- Public routes: `/`, `/sign-in/*`, `/sign-up/*`
+- After sign-in, users land on `/overview`. Sign-out returns to `/`
+- Clerk proxy path: `/__clerk` (proxied through API server via `clerkProxyMiddleware.ts`)
+- Env vars auto-set: `CLERK_SECRET_KEY`, `CLERK_PUBLISHABLE_KEY`, `VITE_CLERK_PUBLISHABLE_KEY`
+- App ID: `app_3Cqnee3fPqt8ZR7eavYsgY1glb4`
+
 ## Use Cases Implemented
 - Insurance policy analysis (exclusions, coverage terms)
 - Financial document analysis (revenue, debt schedules)

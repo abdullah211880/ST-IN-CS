@@ -10,6 +10,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@clerk/express": "^2.1.7",
     "@types/nodemailer": "^8.0.0",
     "@workspace/api-zod": "workspace:*",
     "@workspace/db": "workspace:*",
@@ -18,6 +19,7 @@
     "cors": "^2",
     "drizzle-orm": "catalog:",
     "express": "^5",
+    "http-proxy-middleware": "^3.0.5",
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^8.0.5",
     "pdf-parse": "1.1.1",

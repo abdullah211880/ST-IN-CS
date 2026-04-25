@@ -46,3 +46,4 @@ channel = "stable-25_05"
 
 [userenv.shared]
 NOTIFY_EMAIL = "ali.aljulwah@gmail.com"
+VITE_CLERK_PUBLISHABLE_KEY = "pk_test_c3BsZW5kaWQtaG91bmQtMTAuY2xlcmsuYWNjb3VudHMuZGV2JA"

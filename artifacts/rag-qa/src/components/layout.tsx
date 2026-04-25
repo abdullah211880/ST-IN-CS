@@ -1,9 +1,10 @@
 import { ReactNode, useState, useRef, useEffect } from "react";
 import { Link, useLocation } from "wouter";
+import { useUser, useClerk } from "@clerk/react";
 import {
   Database, FileText, MessageSquare, Home,
   Bot, Send, X, Loader2, ChevronDown, Sparkles,
-  ChevronLeft, ChevronRight, Lightbulb, Sun, Moon, Target, Bug, ShieldCheck, ShieldAlert, GraduationCap,
+  ChevronLeft, ChevronRight, Lightbulb, Sun, Moon, Target, Bug, ShieldCheck, ShieldAlert, GraduationCap, LogOut,
 } from "lucide-react";
 import { SuggestFeatureDialog } from "@/components/suggest-feature-dialog";
 import { useTheme } from "@/contexts/theme-context";
@@ -196,6 +197,103 @@ function AiAssistant() {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+/* ─── user footer ───────────────────────────────────────── */
+function UserFooter() {
+  const { user } = useUser();
+  const { signOut } = useClerk();
+
+  const initials = user
+    ? ((user.firstName?.[0] ?? "") + (user.lastName?.[0] ?? "")).toUpperCase() || user.primaryEmailAddress?.emailAddress?.[0]?.toUpperCase() || "U"
+    : "…";
+
+  const displayName = user
+    ? [user.firstName, user.lastName].filter(Boolean).join(" ") || user.primaryEmailAddress?.emailAddress || "User"
+    : "";
+
+  const email = user?.primaryEmailAddress?.emailAddress ?? "";
+
+  return (
+    <div
+      className="relative z-10 shrink-0 px-4 py-3 flex items-center gap-3"
+      style={{ borderTop: "1px solid var(--sidebar-divider)" }}
+    >
+      {/* Avatar */}
+      {user?.imageUrl ? (
+        <img
+          src={user.imageUrl}
+          alt={displayName}
+          className="w-7 h-7 rounded-full shrink-0 object-cover"
+        />
+      ) : (
+        <div
+          className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
+          style={{ background: "linear-gradient(135deg, hsl(192 80% 30%), hsl(260 70% 40%))" }}
+        >
+          {initials}
+        </div>
+      )}
+
+      {/* Name + email */}
+      <div className="flex-1 min-w-0">
+        <p className="text-xs font-medium text-foreground leading-none truncate">{displayName}</p>
+        <p className="text-[10px] text-muted-foreground/45 mt-0.5 truncate">{email}</p>
+      </div>
+
+      {/* Instagram link */}
+      <a
+        href="https://www.instagram.com/ragsystem"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Instagram"
+        title="@ragsystem on Instagram"
+        className="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-200"
+        style={{ background: "hsl(228 50% 12%/0.8)", border: "1px solid hsl(320 50% 30%/0.3)" }}
+        onMouseEnter={e => {
+          const el = e.currentTarget as HTMLElement;
+          el.style.background = "linear-gradient(135deg, hsl(285 80% 30%/0.6), hsl(340 85% 35%/0.6), hsl(35 90% 35%/0.6))";
+          el.style.borderColor = "hsl(320 70% 55%/0.6)";
+          el.style.boxShadow = "0 0 10px hsl(320 80% 50%/0.3)";
+          el.style.transform = "scale(1.1)";
+        }}
+        onMouseLeave={e => {
+          const el = e.currentTarget as HTMLElement;
+          el.style.background = "hsl(228 50% 12%/0.8)";
+          el.style.borderColor = "hsl(320 50% 30%/0.3)";
+          el.style.boxShadow = "";
+          el.style.transform = "scale(1)";
+        }}
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: "hsl(320 70% 70%)" }}>
+          <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+          <circle cx="12" cy="12" r="4.5" />
+          <circle cx="17.5" cy="6.5" r="0.8" fill="currentColor" stroke="none" />
+        </svg>
+      </a>
+
+      {/* Sign out button */}
+      <button
+        onClick={() => signOut()}
+        aria-label="Sign out"
+        title="Sign out"
+        className="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-200 text-muted-foreground/40 hover:text-red-400"
+        style={{ border: "1px solid hsl(228 30% 20%/0.5)" }}
+        onMouseEnter={e => {
+          const el = e.currentTarget as HTMLElement;
+          el.style.background = "hsl(0 50% 14%/0.5)";
+          el.style.borderColor = "hsl(0 60% 35%/0.5)";
+        }}
+        onMouseLeave={e => {
+          const el = e.currentTarget as HTMLElement;
+          el.style.background = "";
+          el.style.borderColor = "hsl(228 30% 20%/0.5)";
+        }}
+      >
+        <LogOut className="w-3.5 h-3.5" />
+      </button>
     </div>
   );
 }
@@ -497,60 +595,8 @@ export function Layout({ children }: LayoutProps) {
         </div>
 
         {/* User footer */}
-        <div
-          className="relative z-10 shrink-0 px-4 py-3 flex items-center gap-3"
-          style={{ borderTop: "1px solid var(--sidebar-divider)" }}
-        >
-          <div
-            className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
-            style={{ background: "linear-gradient(135deg, hsl(192 80% 30%), hsl(260 70% 40%))" }}
-          >
-            AK
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium text-foreground leading-none">{t("analystMode")}</p>
-            <div className="flex items-center gap-1 mt-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"
-                style={{ animation: "pulse-dot 2.5s ease-in-out infinite" }} />
-              <span className="text-[10px] text-muted-foreground/50">{t("ready")}</span>
-            </div>
-          </div>
+        <UserFooter />
 
-          {/* Instagram link */}
-          <a
-            href="https://www.instagram.com/ragsystem"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Instagram"
-            title="@ragsystem on Instagram"
-            className="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-200"
-            style={{
-              background: "hsl(228 50% 12%/0.8)",
-              border: "1px solid hsl(320 50% 30%/0.3)",
-            }}
-            onMouseEnter={e => {
-              const el = e.currentTarget as HTMLElement;
-              el.style.background = "linear-gradient(135deg, hsl(285 80% 30%/0.6), hsl(340 85% 35%/0.6), hsl(35 90% 35%/0.6))";
-              el.style.borderColor = "hsl(320 70% 55%/0.6)";
-              el.style.boxShadow = "0 0 10px hsl(320 80% 50%/0.3)";
-              el.style.transform = "scale(1.1)";
-            }}
-            onMouseLeave={e => {
-              const el = e.currentTarget as HTMLElement;
-              el.style.background = "hsl(228 50% 12%/0.8)";
-              el.style.borderColor = "hsl(320 50% 30%/0.3)";
-              el.style.boxShadow = "";
-              el.style.transform = "scale(1)";
-            }}
-          >
-            {/* Instagram SVG icon */}
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: "hsl(320 70% 70%)" }}>
-              <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-              <circle cx="12" cy="12" r="4.5" />
-              <circle cx="17.5" cy="6.5" r="0.8" fill="currentColor" stroke="none" />
-            </svg>
-          </a>
-        </div>
       </aside>
 
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-background">
