@@ -8,11 +8,96 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
-import { Send, Terminal, ChevronDown, ChevronRight, FileText, Loader2, ArrowLeft, BrainCircuit, AlignLeft, Layers, Globe } from "lucide-react";
+import { Send, Terminal, ChevronDown, ChevronRight, FileText, Loader2, ArrowLeft, BrainCircuit, AlignLeft, Layers, Globe, BookOpen, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import AnimatedBackground from "@/components/animated-background";
 import { useLang } from "@/contexts/language-context";
+
+/* ── Wikipedia summary card ──────────────────────────────────── */
+interface WikiSummary { title: string; extract: string; pageUrl: string; thumbnail?: string; }
+
+async function fetchWikiSummary(query: string): Promise<WikiSummary | null> {
+  try {
+    const searchUrl = `https://en.wikipedia.org/w/api.php?action=opensearch&search=${encodeURIComponent(query)}&limit=1&format=json&origin=*`;
+    const searchRes = await fetch(searchUrl);
+    if (!searchRes.ok) return null;
+    const searchData = await searchRes.json() as [string, string[], string[], string[]];
+    const title = searchData[1]?.[0];
+    if (!title) return null;
+
+    const summaryRes = await fetch(
+      `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`,
+      { headers: { "Api-User-Agent": "RAGEngine/1.0" } }
+    );
+    if (!summaryRes.ok) return null;
+    const d = await summaryRes.json() as any;
+    return {
+      title: d.title,
+      extract: d.extract_html
+        ? d.extract_html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()
+        : (d.extract ?? ""),
+      pageUrl: d.content_urls?.desktop?.page ?? `https://en.wikipedia.org/wiki/${encodeURIComponent(title)}`,
+      thumbnail: d.thumbnail?.source,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function WikipediaCard({ question }: { question: string }) {
+  const [state, setState] = useState<"idle" | "loading" | "done" | "none">("idle");
+  const [wiki, setWiki]   = useState<WikiSummary | null>(null);
+  const [open, setOpen]   = useState(false);
+  const loaded = useRef(false);
+
+  useEffect(() => {
+    if (loaded.current) return;
+    loaded.current = true;
+    setState("loading");
+    fetchWikiSummary(question).then(result => {
+      if (result && result.extract.length > 80) {
+        setWiki(result);
+        setState("done");
+      } else {
+        setState("none");
+      }
+    });
+  }, [question]);
+
+  if (state === "idle" || state === "loading" || state === "none") return null;
+  if (!wiki) return null;
+
+  return (
+    <div className="mt-2 rounded-lg overflow-hidden"
+      style={{ border: "1px solid hsl(220 30% 20%/0.5)", background: "hsl(228 25% 8%/0.5)" }}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center gap-2.5 px-3 py-2.5 text-left transition-colors hover:bg-white/4"
+      >
+        <BookOpen className="w-3.5 h-3.5 text-blue-400/70 shrink-0" />
+        <span className="text-xs font-medium text-blue-400/80 flex-1 truncate">Wikipedia: {wiki.title}</span>
+        <ChevronDown className="w-3.5 h-3.5 text-muted-foreground/40 shrink-0 transition-transform duration-200"
+          style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }} />
+      </button>
+      {open && (
+        <div className="px-3 pb-3 flex flex-col gap-2.5 border-t" style={{ borderColor: "hsl(220 30% 18%/0.5)" }}>
+          {wiki.thumbnail && (
+            <img src={wiki.thumbnail} alt={wiki.title} className="w-full max-h-28 object-cover rounded-md mt-2 opacity-80" />
+          )}
+          <p className="text-xs text-muted-foreground/70 leading-relaxed mt-2 line-clamp-5">
+            {wiki.extract}
+          </p>
+          <a href={wiki.pageUrl} target="_blank" rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-xs text-blue-400/70 hover:text-blue-400 transition-colors">
+            <ExternalLink className="w-3 h-3" />
+            Read on Wikipedia
+          </a>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function SessionQA() {
   const params = useParams();
@@ -168,57 +253,70 @@ export default function SessionQA() {
                   <p className="text-sm">{t("qaEmptyDesc")}</p>
                 </div>
               ) : (
-                session.messages.map((msg) => (
-                  <div key={msg.id} className={cn("flex gap-4", msg.role === 'user' ? "justify-end" : "justify-start")}>
-                    {msg.role === 'assistant' && (
-                      <Avatar className="w-8 h-8 border border-primary/20 shrink-0">
-                        <AvatarFallback className="bg-primary/10 text-primary font-bold text-xs">AI</AvatarFallback>
-                      </Avatar>
-                    )}
-                    
-                    <div className={cn(
-                      "max-w-[85%] rounded-lg p-4", 
-                      msg.role === 'user' 
-                        ? "bg-primary text-primary-foreground shadow-[0_0_20px_hsl(192_100%_48%_/_0.35)]" 
-                        : "bg-card/70 backdrop-blur-sm glow-card"
-                    )}>
-                      {msg.role === 'assistant' ? (
-                        <div className="prose prose-base dark:prose-invert max-w-none break-words
-                          [&>p]:mb-3 [&>p:last-child]:mb-0 [&>p]:text-base [&>p]:leading-7
-                          [&>ol]:list-decimal [&>ol]:ps-5 [&>ol]:space-y-2 [&>ol]:mb-3
-                          [&>ul]:list-disc [&>ul]:ps-5 [&>ul]:space-y-2 [&>ul]:mb-3
-                          [&_li]:leading-relaxed [&_li]:text-base
-                          [&>h1]:text-lg [&>h1]:font-bold [&>h1]:mb-2
-                          [&>h2]:text-base [&>h2]:font-bold [&>h2]:mb-2
-                          [&>h3]:text-base [&>h3]:font-semibold [&>h3]:mb-1.5
-                          [&>strong]:font-semibold
-                          [&>blockquote]:border-s-2 [&>blockquote]:border-primary/40 [&>blockquote]:ps-3 [&>blockquote]:text-muted-foreground [&>blockquote]:italic
-                          [&>hr]:border-border [&>hr]:my-3">
-                          <ReactMarkdown>{msg.content}</ReactMarkdown>
-                        </div>
-                      ) : (
-                        <div className="break-words text-sm leading-relaxed">{msg.content}</div>
+                session.messages.map((msg, msgIdx) => {
+                  const precedingUserMsg = msg.role === "assistant"
+                    ? session.messages.slice(0, msgIdx).filter((m: any) => m.role === "user").at(-1)
+                    : null;
+
+                  return (
+                  <div key={msg.id}>
+                    <div className={cn("flex gap-4", msg.role === 'user' ? "justify-end" : "justify-start")}>
+                      {msg.role === 'assistant' && (
+                        <Avatar className="w-8 h-8 border border-primary/20 shrink-0">
+                          <AvatarFallback className="bg-primary/10 text-primary font-bold text-xs">AI</AvatarFallback>
+                        </Avatar>
                       )}
                       
-                      {msg.role === 'assistant' && msg.sources && msg.sources.length > 0 && (
-                        <div className="mt-4 pt-3 border-t border-border/50">
-                          <div className="flex items-center text-xs font-medium text-muted-foreground mb-2">
-                            <Layers className="w-3 h-3 me-1" />
-                            {t("qaSources")} ({msg.sources.length})
+                      <div className={cn(
+                        "max-w-[85%] rounded-lg p-4", 
+                        msg.role === 'user' 
+                          ? "bg-primary text-primary-foreground shadow-[0_0_20px_hsl(192_100%_48%_/_0.35)]" 
+                          : "bg-card/70 backdrop-blur-sm glow-card"
+                      )}>
+                        {msg.role === 'assistant' ? (
+                          <div className="prose prose-base dark:prose-invert max-w-none break-words
+                            [&>p]:mb-3 [&>p:last-child]:mb-0 [&>p]:text-base [&>p]:leading-7
+                            [&>ol]:list-decimal [&>ol]:ps-5 [&>ol]:space-y-2 [&>ol]:mb-3
+                            [&>ul]:list-disc [&>ul]:ps-5 [&>ul]:space-y-2 [&>ul]:mb-3
+                            [&_li]:leading-relaxed [&_li]:text-base
+                            [&>h1]:text-lg [&>h1]:font-bold [&>h1]:mb-2
+                            [&>h2]:text-base [&>h2]:font-bold [&>h2]:mb-2
+                            [&>h3]:text-base [&>h3]:font-semibold [&>h3]:mb-1.5
+                            [&>strong]:font-semibold
+                            [&>blockquote]:border-s-2 [&>blockquote]:border-primary/40 [&>blockquote]:ps-3 [&>blockquote]:text-muted-foreground [&>blockquote]:italic
+                            [&>hr]:border-border [&>hr]:my-3">
+                            <ReactMarkdown>{msg.content}</ReactMarkdown>
                           </div>
-                          <div className="flex flex-wrap gap-2">
-                            {Array.from(new Set(msg.sources.map((s: any) => s.filename))).map(filename => (
-                              <div key={filename as string} className="inline-flex items-center px-2 py-1 rounded bg-muted/50 text-xs text-muted-foreground border">
-                                <FileText className="w-3 h-3 me-1" />
-                                {filename as string}
-                              </div>
-                            ))}
+                        ) : (
+                          <div className="break-words text-sm leading-relaxed">{msg.content}</div>
+                        )}
+                        
+                        {msg.role === 'assistant' && msg.sources && msg.sources.length > 0 && (
+                          <div className="mt-4 pt-3 border-t border-border/50">
+                            <div className="flex items-center text-xs font-medium text-muted-foreground mb-2">
+                              <Layers className="w-3 h-3 me-1" />
+                              {t("qaSources")} ({msg.sources.length})
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              {Array.from(new Set(msg.sources.map((s: any) => s.filename))).map(filename => (
+                                <div key={filename as string} className="inline-flex items-center px-2 py-1 rounded bg-muted/50 text-xs text-muted-foreground border">
+                                  <FileText className="w-3 h-3 me-1" />
+                                  {filename as string}
+                                </div>
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        )}
+
+                        {/* Wikipedia card below each AI answer */}
+                        {msg.role === 'assistant' && precedingUserMsg && (
+                          <WikipediaCard question={precedingUserMsg.content} />
+                        )}
+                      </div>
                     </div>
                   </div>
-                ))
+                  );
+                })
               )}
               
               {askMutation.isPending && (

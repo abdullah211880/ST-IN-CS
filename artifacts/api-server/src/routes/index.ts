@@ -13,6 +13,7 @@ import { suggestionsRouter } from "./rag/suggestions.js";
 import { goalsRouter } from "./rag/goals.js";
 import { bugfinderRouter } from "./rag/bugfinder.js";
 import { scamCheckerRouter } from "./rag/scamchecker.js";
+import { virusTotalRouter } from "./rag/virustotal.js";
 
 const router: IRouter = Router();
 
@@ -30,5 +31,6 @@ router.use(suggestionsRouter);
 router.use(goalsRouter);
 router.use(bugfinderRouter);
 router.use(scamCheckerRouter);
+router.use(virusTotalRouter);
 
 export default router;
