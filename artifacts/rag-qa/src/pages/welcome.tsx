@@ -153,13 +153,45 @@ export default function Welcome() {
           <Database className="w-5 h-5 text-cyan-400" />
           <span className="font-bold text-lg tracking-tight text-foreground">RAG Engine</span>
         </div>
-        <button
-          onClick={() => setLocation("/overview")}
-          className="text-sm text-muted-foreground hover:text-cyan-300 transition-colors flex items-center gap-1.5 group"
-        >
-          Skip to dashboard
-          <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-        </button>
+        <div className="flex items-center gap-3">
+          {/* Instagram */}
+          <a
+            href="https://www.instagram.com/ragsystem"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="@ragsystem on Instagram"
+            className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200"
+            style={{ background: "hsl(228 50% 12%/0.8)", border: "1px solid hsl(320 50% 30%/0.3)" }}
+            onMouseEnter={e => {
+              const el = e.currentTarget as HTMLElement;
+              el.style.background = "linear-gradient(135deg, hsl(285 80% 30%/0.7), hsl(340 85% 35%/0.7), hsl(35 90% 35%/0.7))";
+              el.style.borderColor = "hsl(320 70% 55%/0.6)";
+              el.style.boxShadow = "0 0 12px hsl(320 80% 50%/0.35)";
+              el.style.transform = "scale(1.1)";
+            }}
+            onMouseLeave={e => {
+              const el = e.currentTarget as HTMLElement;
+              el.style.background = "hsl(228 50% 12%/0.8)";
+              el.style.borderColor = "hsl(320 50% 30%/0.3)";
+              el.style.boxShadow = "";
+              el.style.transform = "scale(1)";
+            }}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: "hsl(320 70% 75%)" }}>
+              <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+              <circle cx="12" cy="12" r="4.5" />
+              <circle cx="17.5" cy="6.5" r="0.8" fill="currentColor" stroke="none" />
+            </svg>
+          </a>
+
+          <button
+            onClick={() => setLocation("/overview")}
+            className="text-sm text-muted-foreground hover:text-cyan-300 transition-colors flex items-center gap-1.5 group"
+          >
+            Skip to dashboard
+            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+          </button>
+        </div>
       </header>
 
       {/* Hero */}
