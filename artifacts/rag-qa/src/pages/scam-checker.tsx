@@ -6,6 +6,9 @@ import {
 } from "lucide-react";
 import { useLang } from "@/contexts/language-context";
 
+// testing-scam-checker: scratch branch for verifying scam-checker behaviour
+//   (OpenAI verdict accuracy, URL auto-detection, and VirusTotal scan flow).
+
 /* ── types ─────────────────────────────────────────────────── */
 interface ScamResult {
   verdict: "scam" | "suspicious" | "safe";
