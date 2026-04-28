@@ -2,6 +2,9 @@ import { useState, useCallback, useMemo } from "react";
 import { Plus, Trash2, GraduationCap, RotateCcw, BookOpen } from "lucide-react";
 import { useLang } from "@/contexts/language-context";
 
+// testing-gpa-service: scratch branch for verifying GPA calculator behaviour
+//   (4.0 / 5.0 scale switching, weighted average, and reset flow).
+
 /* ── grade maps ─────────────────────────────────────────────── */
 const LETTER_GRADES_4 = [
   { label: "A+", points: 4.0 },
